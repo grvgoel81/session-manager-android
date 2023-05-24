@@ -43,9 +43,10 @@ class MainActivity : AppCompatActivity() {
         btnAuthorize = findViewById(R.id.btnAuthorize)
 
         web3Auth = Web3Auth(
-            Web3AuthOptions(context = this,
+            Web3AuthOptions(
+                context = this,
                 clientId = getString(R.string.web3auth_project_id),
-                network = Web3Auth.Network.MAINNET,
+                network = Network.MAINNET,
                 redirectUrl = Uri.parse("torusapp://org.torusresearch.web3authexample/redirect"),
                 whiteLabel = WhiteLabelData(  // Optional param
                     "Web3Auth Sample App", null, null, "en", true,
@@ -109,13 +110,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun onClickLogin() {
         val selectedLoginProvider = Provider.GOOGLE
-        val loginCompletableFuture: java8.util.concurrent.CompletableFuture<Web3AuthResponse> =
+        val loginCompletableFuture: CompletableFuture<Web3AuthResponse> =
             web3Auth.login(LoginParams(selectedLoginProvider))
 
         loginCompletableFuture.whenComplete { loginResponse, error ->
             if (error == null) {
-                val jsonObject = JSONObject(gson.toJson(loginResponse))
-                tvResponse.text = jsonObject.toString(4)
+                val jsonObject = JSONObject(gson.toJson(web3Auth.getUserInfo()))
+                tvResponse.text =
+                    jsonObject.toString(4) + "\n Private Key: " + web3Auth.getPrivkey()
                 sessionId = loginResponse.sessionId.toString()
                 loginResponse.sessionId?.let { useSessionManageSdk(it) }
             } else {
