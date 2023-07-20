@@ -124,21 +124,29 @@ object KeyStoreManager {
      * Store encrypted data into preferences
      */
     fun savePreferenceData(key: String, data: String) {
-        sharedPreferences.edit().putString(key, data)?.apply()
+        if (this::sharedPreferences.isInitialized) {
+            sharedPreferences.edit().putString(key, data)?.apply()
+        }
     }
 
     /**
      * Retrieve decrypted data from preferences
      */
     fun getPreferencesData(key: String): String? {
-        return sharedPreferences.getString(key, "")
+        var value = "";
+        if (this::sharedPreferences.isInitialized) {
+            value = sharedPreferences.getString(key, "").toString()
+        }
+        return value
     }
 
     /**
      * Delete All local storage
      */
     fun deletePreferencesData(key: String) {
-        sharedPreferences.edit().remove(key)?.apply()
+        if (this::sharedPreferences.isInitialized) {
+            sharedPreferences.edit().remove(key)?.apply()
+        }
     }
 
     /**
