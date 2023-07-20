@@ -18,7 +18,8 @@
 -keep class com.web3auth.session_manager_android.* {*;}
 -keep class com.web3auth.session_manager_android.** {*;}
 -keepclassmembers class com.web3auth.session_manager_android.**
-
+-keep class org.bouncycastle.jcajce.provider.** { *; }
+-keep class org.bouncycastle.jce.provider.** { *; }
 # JSR 305 annotations are for embedding nullability information.
 -dontwarn javax.annotation.**
 # A resource is loaded with a relative path so the package of this class must be preserved.
