@@ -70,7 +70,7 @@ class SessionManager(context: Context) {
         if (ApiHelper.isNetworkAvailable(mContext)) {
             try {
                 val ephemKey = "04" + KeyStoreManager.getPubKey(newSessionKey)
-                val ivKey = KeyStoreManager.randomString(32)
+                val ivKey = KeyStoreManager.randomString(16)
                 val aes256cbc = AES256CBC(
                     newSessionKey,
                     ephemKey,
@@ -78,8 +78,8 @@ class SessionManager(context: Context) {
                 )
 
                 val encryptedData = aes256cbc.encrypt(data.toByteArray(StandardCharsets.UTF_8))
-                val mac = aes256cbc.macKey
-                val encryptedMetadata = ShareMetadata(ivKey, ephemKey, encryptedData, mac)
+                val mac = aes256cbc.getMac(encryptedData) // this is incorrect
+                val encryptedMetadata = ShareMetadata(ivKey, ephemKey, encryptedData, KeyStoreManager.convertByteToHexadecimal(mac))
                 val gsonData = gson.toJson(encryptedMetadata)
 
                 GlobalScope.launch {
