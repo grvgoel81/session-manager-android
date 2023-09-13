@@ -22,8 +22,8 @@ public class AES256CBC {
     private static final String TRANSFORMATION = "AES/CBC/PKCS5Padding";
     private final byte[] AES_ENCRYPTION_KEY;
     private final byte[] ENCRYPTION_IV;
-
     private final byte[] MAC_KEY;
+    private final byte[] ENCRYPTION_EPHEM_KEY;
 
     public AES256CBC(String privateKeyHex, String ephemPublicKeyHex, String encryptionIvHex) throws NoSuchAlgorithmException {
         byte[] hash = SHA512.digest(toByteArray(ecdh(privateKeyHex, ephemPublicKeyHex)));
@@ -31,6 +31,7 @@ public class AES256CBC {
         AES_ENCRYPTION_KEY = encKeyBytes;
         MAC_KEY = Arrays.copyOfRange(hash, 32, hash.length);
         ENCRYPTION_IV = toByteArray(encryptionIvHex);
+        ENCRYPTION_EPHEM_KEY = toByteArray(ephemPublicKeyHex);
     }
 
     /**
@@ -123,7 +124,7 @@ public class AES256CBC {
     public byte[] getMac(byte[] cipherTextBytes) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         outputStream.write(ENCRYPTION_IV);
-        outputStream.write(AES_ENCRYPTION_KEY);
+        outputStream.write(ENCRYPTION_EPHEM_KEY);
         outputStream.write(cipherTextBytes);
         byte[] combinedData = outputStream.toByteArray();
         return hmacSha256Sign(MAC_KEY, combinedData);

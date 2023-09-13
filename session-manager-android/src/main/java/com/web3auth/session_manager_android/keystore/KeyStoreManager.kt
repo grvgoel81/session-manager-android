@@ -196,7 +196,7 @@ object KeyStoreManager {
         val random = SecureRandom()
         val bytes = ByteArray(len)
         random.nextBytes(bytes);
-        return bytes;
+        return bytes
     }
 
     /**
