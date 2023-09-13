@@ -76,7 +76,7 @@ class SessionManager(context: Context) {
                 )
 
                 val encryptedData = aes256cbc.encrypt(data.toByteArray(StandardCharsets.UTF_8))
-                val mac = aes256cbc.getMac(encryptedData) // this is incorrect
+                val mac = aes256cbc.getMac(encryptedData)
                 val encryptedMetadata = ShareMetadata(
                     KeyStoreManager.convertByteToHexadecimal(ivKey),
                     ephemKey,

@@ -4,7 +4,7 @@
             "outputFile": "com.web3auth.app-mergeDebugResources-29:/values-sw600dp-v13/values-sw600dp-v13.xml",
             "map": [
                 {
-                    "source": "/Users/torus/.gradle/caches/transforms-3/58dd3f4812eb78824b955d86d3508d52/transformed/appcompat-1.6.1/res/values-sw600dp-v13/values-sw600dp-v13.xml",
+                    "source": "/Users/gaurav/.gradle/caches/transforms-3/58dd3f4812eb78824b955d86d3508d52/transformed/appcompat-1.6.1/res/values-sw600dp-v13/values-sw600dp-v13.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -14,7 +14,7 @@
                     }
                 },
                 {
-                    "source": "/Users/torus/.gradle/caches/transforms-3/0d291c9371dfbedda11ea76171717f69/transformed/material-1.8.0/res/values-sw600dp-v13/values-sw600dp-v13.xml",
+                    "source": "/Users/gaurav/.gradle/caches/transforms-3/0d291c9371dfbedda11ea76171717f69/transformed/material-1.8.0/res/values-sw600dp-v13/values-sw600dp-v13.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,10,11,12,13,14",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4",
