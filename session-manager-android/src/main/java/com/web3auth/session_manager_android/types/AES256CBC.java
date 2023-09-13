@@ -2,8 +2,6 @@ package com.web3auth.session_manager_android.types;
 
 import com.web3auth.session_manager_android.keystore.KeyStoreManager;
 
-import org.bouncycastle.util.encoders.Hex;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -132,10 +130,9 @@ public class AES256CBC {
     }
 
     public byte[] hmacSha256Sign(byte[] key, byte[] data) throws NoSuchAlgorithmException, InvalidKeyException {
-        SecretKeySpec secretKeySpec = new SecretKeySpec(key, "HMACSHA256");
-        Mac mac = Mac.getInstance("HMACSHA256");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key, "HmacSHA256");
+        Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(secretKeySpec);
-        byte[] macData = mac.doFinal(data);
-        return Hex.encode(macData);
+        return mac.doFinal(data);
     }
 }
