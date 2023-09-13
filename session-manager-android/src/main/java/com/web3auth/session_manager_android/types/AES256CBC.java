@@ -21,7 +21,7 @@ public class AES256CBC {
     private final byte[] ENCRYPTION_IV;
 
     public AES256CBC(String privateKeyHex, String ephemPublicKeyHex, String encryptionIvHex) throws NoSuchAlgorithmException {
-        byte[] hash = SHA512.digest(toByteArray(ecdh(privateKeyHex, ephemPublicKeyHex)));
+        byte[] hash = SHA256.digest(toByteArray(ecdh(privateKeyHex, ephemPublicKeyHex)));
         byte[] encKeyBytes = Arrays.copyOfRange(hash, 0, 32);
         AES_ENCRYPTION_KEY = encKeyBytes;
         ENCRYPTION_IV = toByteArray(encryptionIvHex);
