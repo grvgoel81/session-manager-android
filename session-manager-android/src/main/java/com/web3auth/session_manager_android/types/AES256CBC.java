@@ -2,10 +2,6 @@ package com.web3auth.session_manager_android.types;
 
 import com.web3auth.session_manager_android.keystore.KeyStoreManager;
 
-import javax.crypto.Cipher;
-import javax.crypto.Mac;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -18,6 +14,11 @@ import java.security.spec.ECFieldFp;
 import java.security.spec.EllipticCurve;
 import java.util.Arrays;
 
+import javax.crypto.Cipher;
+import javax.crypto.Mac;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
 public class AES256CBC {
     private static final String TRANSFORMATION = "AES/CBC/PKCS5Padding";
     private final byte[] AES_ENCRYPTION_KEY;
@@ -26,7 +27,7 @@ public class AES256CBC {
     private final byte[] MAC_KEY;
 
     public AES256CBC(String privateKeyHex, String ephemPublicKeyHex, String encryptionIvHex) throws NoSuchAlgorithmException {
-        byte[] hash = SHA256.digest(toByteArray(ecdh(privateKeyHex, ephemPublicKeyHex)));
+        byte[] hash = SHA512.digest(toByteArray(ecdh(privateKeyHex, ephemPublicKeyHex)));
         byte[] encKeyBytes = Arrays.copyOfRange(hash, 0, 32);
         AES_ENCRYPTION_KEY = encKeyBytes;
         MAC_KEY = Arrays.copyOfRange(hash, 32, encKeyBytes.length);
