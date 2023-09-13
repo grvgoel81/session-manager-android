@@ -199,7 +199,7 @@ object KeyStoreManager {
         val rnd = SecureRandom()
         val sb = StringBuilder(len)
         for (i in 0 until len) sb.append(charSet[rnd.nextInt(charSet.length)])
-        return sb.toString()
+        return convertByteToHexadecimal(sb.toString().toByteArray(StandardCharsets.UTF_8))
     }
 
     /**

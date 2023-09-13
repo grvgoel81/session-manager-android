@@ -77,13 +77,23 @@ public class AES256CBC {
         try {
             cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(Cipher.DECRYPT_MODE, makeKey(), makeIv());
-            byte[] decrypt = cipher.doFinal(Base64.decode(src));
+            byte[] decrypt = cipher.doFinal(hexStringToByteArray(src));
             return new String(decrypt, StandardCharsets.UTF_8);
         } catch (Exception e) {
             e.printStackTrace();
             throw new TorusException("There was an error decrypting data.", e);
         }
+    }
 
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
+        }
+
+        return data;
     }
 
     private BigInteger ecdh(String privateKeyHex, String ephemPublicKeyHex) {
