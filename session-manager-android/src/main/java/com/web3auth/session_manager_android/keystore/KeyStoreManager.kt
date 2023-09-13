@@ -192,14 +192,11 @@ object KeyStoreManager {
         Security.insertProviderAt(BouncyCastleProvider(), 1)
     }
 
-    fun randomString(len: Int): String {
-        val charSet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-        charSet.length
-        charSet.chars()
-        val rnd = SecureRandom()
-        val sb = StringBuilder(len)
-        for (i in 0 until len) sb.append(charSet[rnd.nextInt(charSet.length)])
-        return convertByteToHexadecimal(sb.toString().toByteArray(StandardCharsets.UTF_8))
+    fun randomBytes(len: Int): ByteArray {
+        val random = SecureRandom()
+        val bytes = ByteArray(len)
+        random.nextBytes(bytes);
+        return bytes;
     }
 
     /**

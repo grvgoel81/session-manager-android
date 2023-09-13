@@ -1,0 +1,8 @@
+“
+
+6
+torusRedirectHost!org.torusresearch.web3authexample
+$
+torusRedirectPathPrefix	/redirect
+
+torusRedirectSchemetorusappcom.web3auth.app

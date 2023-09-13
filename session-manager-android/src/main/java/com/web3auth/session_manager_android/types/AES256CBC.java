@@ -51,6 +51,11 @@ public class AES256CBC {
         return b;
     }
 
+    /**
+     * Converts a hex string to a byte array
+     * @param s - string to be converted
+     * @return - byte[]
+     */
     public static byte[] toByteArray(String s) {
         int len = s.length();
         byte[] data = new byte[len / 2];
@@ -60,25 +65,25 @@ public class AES256CBC {
         return data;
     }
 
-    public String encrypt(byte[] src) throws TorusException {
+    public byte[] encrypt(byte[] src) throws TorusException {
         Cipher cipher;
         try {
             cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(Cipher.ENCRYPT_MODE, makeKey(), makeIv());
-            return Base64.encodeBytes(cipher.doFinal(src));
+            return cipher.doFinal(src);
         } catch (Exception e) {
             e.printStackTrace();
             throw new TorusException("Torus Internal Error", e);
         }
     }
 
-    public String decrypt(String src) throws TorusException {
+    public byte[] decrypt(String src) throws TorusException {
         Cipher cipher;
         try {
             cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(Cipher.DECRYPT_MODE, makeKey(), makeIv());
             byte[] decrypt = cipher.doFinal(hexStringToByteArray(src));
-            return new String(decrypt, StandardCharsets.UTF_8);
+            return decrypt;
         } catch (Exception e) {
             e.printStackTrace();
             throw new TorusException("There was an error decrypting data.", e);
@@ -116,8 +121,7 @@ public class AES256CBC {
         return KeyStoreManager.convertByteToHexadecimal(MAC_KEY);
     }
 
-    public byte[] getMac(String cipherText) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
-        byte[] cipherTextBytes = Base64.decode(cipherText);
+    public byte[] getMac(byte[] cipherTextBytes) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         outputStream.write(ENCRYPTION_IV);
         outputStream.write(AES_ENCRYPTION_KEY);
