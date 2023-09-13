@@ -70,7 +70,7 @@ class SessionManager(context: Context) {
         if (ApiHelper.isNetworkAvailable(mContext)) {
             try {
                 val ephemKey = "04" + KeyStoreManager.getPubKey(newSessionKey)
-                val ivKey = KeyStoreManager.randomString(16)
+                val ivKey = KeyStoreManager.randomString(32)
                 val aes256cbc = AES256CBC(
                     newSessionKey,
                     ephemKey,

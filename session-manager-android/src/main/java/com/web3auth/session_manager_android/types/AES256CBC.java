@@ -30,7 +30,7 @@ public class AES256CBC {
         byte[] hash = SHA512.digest(toByteArray(ecdh(privateKeyHex, ephemPublicKeyHex)));
         byte[] encKeyBytes = Arrays.copyOfRange(hash, 0, 32);
         AES_ENCRYPTION_KEY = encKeyBytes;
-        MAC_KEY = Arrays.copyOfRange(hash, 32, encKeyBytes.length);
+        MAC_KEY = Arrays.copyOfRange(hash, 32, hash.length);
         ENCRYPTION_IV = toByteArray(encryptionIvHex);
     }
 
