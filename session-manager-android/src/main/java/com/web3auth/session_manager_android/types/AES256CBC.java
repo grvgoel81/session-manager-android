@@ -19,7 +19,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class AES256CBC {
-    private static final String TRANSFORMATION = "AES/CBC/PKCS7Padding";
+    private static final String TRANSFORMATION = "AES/CBC/PKCS5Padding";
     private final byte[] AES_ENCRYPTION_KEY;
     private final byte[] ENCRYPTION_IV;
     private final byte[] MAC_KEY;
