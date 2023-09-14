@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2a9cd244-ead2-497b-bfd4-b5e828b979b4" name="Changes" comment="remove comments">
+    <list default="true" id="2a9cd244-ead2-497b-bfd4-b5e828b979b4" name="Changes" comment="changes in getMac() function">
+      <change beforePath="$PROJECT_DIR$/.gradle/7.4/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/7.4/executionHistory/executionHistory.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/session-manager-android/src/main/java/com/web3auth/session_manager_android/keystore/KeyStoreManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/session-manager-android/src/main/java/com/web3auth/session_manager_android/keystore/KeyStoreManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/session-manager-android/src/test/java/com/web3auth/session_manager_android/ExampleUnitTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/session-manager-android/src/test/java/com/web3auth/session_manager_android/ExampleUnitTest.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,7 +33,13 @@
     </system>
   </component>
   <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="Gaurav Goel &lt;grvgoel19@gmail.com&gt;" />
+      </list>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="SIGN_OFF_COMMIT" value="true" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -138,7 +145,14 @@
       <option name="project" value="LOCAL" />
       <updated>1694599499240</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="changes in getMac() function">
+      <created>1694601352525</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1694601352525</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -156,7 +170,8 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <MESSAGE value="remove comments" />
-    <option name="LAST_COMMIT_MESSAGE" value="remove comments" />
+    <MESSAGE value="changes in getMac() function" />
+    <option name="LAST_COMMIT_MESSAGE" value="changes in getMac() function" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
@@ -195,12 +210,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/session-manager-android/src/main/java/com/web3auth/session_manager_android/types/AES256CBC.java</url>
-          <line>87</line>
+          <line>88</line>
           <option name="timeStamp" value="7" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/session-manager-android/src/main/java/com/web3auth/session_manager_android/types/AES256CBC.java</url>
-          <line>84</line>
+          <line>85</line>
           <option name="timeStamp" value="8" />
         </line-breakpoint>
       </breakpoints>
