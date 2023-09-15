@@ -77,9 +77,12 @@ public class AES256CBC {
         }
     }
 
-    public byte[] decrypt(String src) throws TorusException {
+    public byte[] decrypt(String src, String mac) throws TorusException {
         Cipher cipher;
         try {
+            if (!hmacSha256Verify(MAC_KEY, getCombinedData(toByteArray(src)), mac)) {
+                throw new RuntimeException("Bad MAC error during decrypt");
+            }
             cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(Cipher.DECRYPT_MODE, makeKey(), makeIv());
             byte[] decrypt = cipher.doFinal(hexStringToByteArray(src));
@@ -117,23 +120,42 @@ public class AES256CBC {
         return new IvParameterSpec(ENCRYPTION_IV);
     }
 
-    public String getMacKey() {
-        return KeyStoreManager.convertByteToHexadecimal(MAC_KEY);
+    public byte[] getMac(byte[] cipherTextBytes) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return hmacSha256Sign(MAC_KEY, getCombinedData(cipherTextBytes));
     }
 
-    public byte[] getMac(byte[] cipherTextBytes) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public byte[] getCombinedData(byte[] cipherTextBytes) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         outputStream.write(ENCRYPTION_IV);
         outputStream.write(ENCRYPTION_EPHEM_KEY);
         outputStream.write(cipherTextBytes);
-        byte[] combinedData = outputStream.toByteArray();
-        return hmacSha256Sign(MAC_KEY, combinedData);
+        return outputStream.toByteArray();
     }
 
+    /**
+     * Generates an HMAC-SHA256 signature.
+     *
+     * @param key  The secret key used for the HMAC-SHA256 operation.
+     * @param data The data on which the HMAC-SHA256 operation is performed.
+     * @return The resulting HMAC-SHA256 signature.
+     */
     public byte[] hmacSha256Sign(byte[] key, byte[] data) throws NoSuchAlgorithmException, InvalidKeyException {
         SecretKeySpec secretKeySpec = new SecretKeySpec(key, "HmacSHA256");
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(secretKeySpec);
         return mac.doFinal(data);
+    }
+
+    /**
+     * Verifies an HMAC-SHA256 signature.
+     *
+     * @param key  The secret key used for the HMAC-SHA256 operation.
+     * @param data The data on which the HMAC-SHA256 operation is performed.
+     * @param sig  The provided HMAC-SHA256 signature.
+     * @return True if the signature is valid, false otherwise.
+     */
+    public boolean hmacSha256Verify(byte[] key, byte[] data, String sig) throws NoSuchAlgorithmException, InvalidKeyException {
+        byte[] expectedSig = hmacSha256Sign(key, data);
+        return KeyStoreManager.convertByteToHexadecimal(expectedSig).equals(sig);
     }
 }

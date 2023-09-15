@@ -163,9 +163,9 @@ class SessionManager(context: Context) {
                         val share = if (fromOpenLogin) {
                             val encryptedShareBytes =
                                 AES256CBC.toByteArray(shareMetadata.ciphertext?.let { BigInteger(it, 16) })
-                            aes256cbc.decrypt(encodeBytes(encryptedShareBytes))
+                            aes256cbc.decrypt(encodeBytes(encryptedShareBytes), shareMetadata.mac)
                         } else {
-                            aes256cbc.decrypt(shareMetadata.ciphertext)
+                            aes256cbc.decrypt(shareMetadata.ciphertext, shareMetadata.mac)
                         }
 
                         Handler(Looper.getMainLooper()).postDelayed(10) {
