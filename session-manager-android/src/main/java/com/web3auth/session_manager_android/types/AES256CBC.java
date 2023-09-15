@@ -134,7 +134,6 @@ public class AES256CBC {
 
     /**
      * Generates an HMAC-SHA256 signature.
-     *
      * @param key  The secret key used for the HMAC-SHA256 operation.
      * @param data The data on which the HMAC-SHA256 operation is performed.
      * @return The resulting HMAC-SHA256 signature.
