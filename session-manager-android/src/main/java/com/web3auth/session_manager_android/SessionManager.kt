@@ -105,7 +105,7 @@ class SessionManager(context: Context) {
                         }
                     } else {
                         Handler(Looper.getMainLooper()).postDelayed(10) {
-                            invalidateSessionCompletableFuture.completeExceptionally(
+                            createSessionResponseCompletableFuture.completeExceptionally(
                                 Exception(
                                     SessionManagerError.getError(
                                         ErrorCode.SOMETHING_WENT_WRONG
@@ -125,6 +125,11 @@ class SessionManager(context: Context) {
                     SessionManagerError.getError(ErrorCode.RUNTIME_ERROR)
                 )
             )
+        }
+        try {
+            Thread.sleep(200) // Sleep for 200 milliseconds
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
         }
         return createSessionResponseCompletableFuture
     }
