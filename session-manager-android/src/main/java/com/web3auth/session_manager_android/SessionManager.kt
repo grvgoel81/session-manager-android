@@ -31,7 +31,7 @@ class SessionManager(context: Context) {
     private val web3AuthApi = ApiHelper.getInstance().create(Web3AuthApi::class.java)
     private val mContext = context
 
-    private var createSessionResponseCompletableFuture: CompletableFuture<String> = CompletableFuture()
+    var createSessionResponseCompletableFuture: CompletableFuture<String> = CompletableFuture()
     private var sessionCompletableFuture: CompletableFuture<String> = CompletableFuture()
     private var invalidateSessionCompletableFuture: CompletableFuture<Boolean> = CompletableFuture()
 
