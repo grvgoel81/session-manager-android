@@ -128,11 +128,6 @@ class SessionManager(context: Context) {
                 )
             )
         }
-        try {
-            Thread.sleep(200) // Sleep for 200 milliseconds
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-        }
         return createSessionResponseCompletableFuture
     }
 
