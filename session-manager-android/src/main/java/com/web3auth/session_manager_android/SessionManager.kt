@@ -1,10 +1,8 @@
 package com.web3auth.session_manager_android
 
 import android.content.Context
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import androidx.annotation.RequiresApi
 import androidx.core.os.postDelayed
 import com.google.gson.GsonBuilder
 import com.web3auth.session_manager_android.api.ApiHelper
@@ -63,8 +61,6 @@ class SessionManager(context: Context) {
         return KeyStoreManager.getPreferencesData(KeyStoreManager.SESSION_ID).toString()
     }
 
-
-    @RequiresApi(Build.VERSION_CODES.O)
     @OptIn(DelicateCoroutinesApi::class)
     fun createSession(data: String, sessionTime: Long): CompletableFuture<String> {
         createSessionResponseCompletableFuture = CompletableFuture()
