@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
             )
             json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
             val sessionResponse: CompletableFuture<String> =
-                sessionManager.createSession(json.toString(), 86400)
+                sessionManager.createSession(json.toString(), 86400, true)
             sessionResponse.whenComplete { response, error ->
                 if (error == null) {
                     sessionId = response
