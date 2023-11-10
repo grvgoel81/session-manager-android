@@ -62,7 +62,7 @@ class SessionManager(context: Context) {
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun createSession(data: String, sessionTime: Long): CompletableFuture<String> {
+    fun createSession(data: String, sessionTime: Long, saveSession: Boolean): CompletableFuture<String> {
         createSessionResponseCompletableFuture = CompletableFuture()
         val newSessionKey = generateRandomSessionKey()
         if (ApiHelper.isNetworkAvailable(mContext)) {
@@ -96,9 +96,11 @@ class SessionManager(context: Context) {
                     )
                     if (result.isSuccessful) {
                         Handler(Looper.getMainLooper()).postDelayed(10) {
-                            KeyStoreManager.savePreferenceData(
-                                KeyStoreManager.SESSION_ID, newSessionKey
-                            )
+                            if(saveSession) {
+                                KeyStoreManager.savePreferenceData(
+                                    KeyStoreManager.SESSION_ID, newSessionKey
+                                )
+                            }
                             createSessionResponseCompletableFuture.complete(newSessionKey)
                         }
                     } else {
