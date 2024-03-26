@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 
 object ApiHelper {
 
-    private const val baseUrl = "https://broadcast-server.tor.us"
+    private const val baseUrl = "https://session.web3auth.io"
 
     private val okHttpClient = OkHttpClient().newBuilder()
         .readTimeout(60, TimeUnit.SECONDS)
