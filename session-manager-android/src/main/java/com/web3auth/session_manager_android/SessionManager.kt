@@ -15,8 +15,10 @@ import com.web3auth.session_manager_android.types.ErrorCode
 import com.web3auth.session_manager_android.types.SessionManagerError
 import com.web3auth.session_manager_android.types.ShareMetadata
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
@@ -62,7 +64,7 @@ class SessionManager(context: Context) {
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun createSession(data: String, sessionTime: Long, saveSession: Boolean): CompletableFuture<String> {
+    /*fun createSession(data: String, sessionTime: Long, saveSession: Boolean): CompletableFuture<String> {
         createSessionResponseCompletableFuture = CompletableFuture()
         val newSessionKey = generateRandomSessionKey()
         if (ApiHelper.isNetworkAvailable(mContext)) {
@@ -127,12 +129,11 @@ class SessionManager(context: Context) {
             )
         }
         return createSessionResponseCompletableFuture
-    }
+    }*/
 
     /**
      * Authorize User session in order to avoid re-login
      */
-    @OptIn(DelicateCoroutinesApi::class)
     fun authorizeSession(fromOpenLogin: Boolean): CompletableFuture<String> {
         sessionCompletableFuture = CompletableFuture()
         val sessionId = KeyStoreManager.getPreferencesData(KeyStoreManager.SESSION_ID).toString()
@@ -203,7 +204,6 @@ class SessionManager(context: Context) {
         return sessionCompletableFuture
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun invalidateSession(): CompletableFuture<Boolean> {
         invalidateSessionCompletableFuture = CompletableFuture()
         if (ApiHelper.isNetworkAvailable(mContext)) {
@@ -274,5 +274,57 @@ class SessionManager(context: Context) {
             )
         }
         return invalidateSessionCompletableFuture
+    }
+
+    suspend fun createSession(data: String, sessionTime: Long, saveSession: Boolean): String {
+        val newSessionKey = generateRandomSessionKey()
+
+        if (!ApiHelper.isNetworkAvailable(mContext)) {
+            throw Exception(SessionManagerError.getError(ErrorCode.RUNTIME_ERROR))
+        }
+
+        try {
+            val ephemKey = "04" + KeyStoreManager.getPubKey(newSessionKey)
+            val ivKey = KeyStoreManager.randomBytes(16)
+            val aes256cbc = AES256CBC(
+                newSessionKey, ephemKey, KeyStoreManager.convertByteToHexadecimal(ivKey)
+            )
+
+            val encryptedData = aes256cbc.encrypt(data.toByteArray(StandardCharsets.UTF_8))
+            val mac = aes256cbc.getMac(encryptedData)
+            val encryptedMetadata = ShareMetadata(
+                KeyStoreManager.convertByteToHexadecimal(ivKey),
+                ephemKey,
+                KeyStoreManager.convertByteToHexadecimal(encryptedData),
+                KeyStoreManager.convertByteToHexadecimal(mac)
+            )
+            val gsonData = gson.toJson(encryptedMetadata)
+
+            val result = withContext(Dispatchers.IO) {
+                web3AuthApi.createSession(
+                    SessionRequestBody(
+                        key = "04".plus(KeyStoreManager.getPubKey(sessionId = newSessionKey)),
+                        data = gsonData,
+                        signature = KeyStoreManager.getECDSASignature(
+                            BigInteger(newSessionKey, 16), gsonData
+                        ),
+                        timeout = min(sessionTime, 7 * 86400)
+                    )
+                )
+            }
+
+            if (result.isSuccessful) {
+                if (saveSession) {
+                    KeyStoreManager.savePreferenceData(KeyStoreManager.SESSION_ID, newSessionKey)
+                }
+                return newSessionKey
+            } else {
+                throw Exception(SessionManagerError.getError(ErrorCode.SOMETHING_WENT_WRONG))
+            }
+
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            throw ex
+        }
     }
 }

@@ -2,18 +2,25 @@ package com.web3auth.app
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import com.web3auth.core.Web3Auth
-import com.web3auth.core.types.*
+import com.web3auth.core.types.LoginParams
+import com.web3auth.core.types.Network
+import com.web3auth.core.types.Provider
+import com.web3auth.core.types.Web3AuthOptions
+import com.web3auth.core.types.Web3AuthResponse
+import com.web3auth.core.types.WhiteLabelData
 import com.web3auth.session_manager_android.SessionManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.util.concurrent.CompletableFuture
 
@@ -32,7 +39,6 @@ class MainActivity : AppCompatActivity() {
 
     private val gson = Gson()
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -90,14 +96,31 @@ class MainActivity : AppCompatActivity() {
                 "91714924788458331086143283967892938475657483928374623640418082526960471979197446884"
             )
             json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
-            val sessionResponse: CompletableFuture<String> =
+            /*val sessionResponse: String =
                 sessionManager.createSession(json.toString(), 86400, true)
+
             sessionResponse.whenComplete { response, error ->
                 if (error == null) {
                     sessionId = response
                     btnSession.visibility = View.GONE
                 } else {
                     Log.d("MainActivity_Web3Auth", error.message ?: "Something went wrong")
+                }
+            }*/
+
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    val sessionKey = sessionManager.createSession(json.toString(), sessionTime, true)
+                    // Handle the session key
+                    withContext(Dispatchers.Main) {
+                        sessionId = sessionKey
+                        btnSession.visibility = View.GONE
+                    }
+                } catch (e: Exception) {
+                    // Handle the error
+                    withContext(Dispatchers.Main) {
+                        Log.e("MyClass", "Error: ${e.message}")
+                    }
                 }
             }
         }
