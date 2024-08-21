@@ -186,7 +186,6 @@ class SessionManager(context: Context) {
             }
         }.exceptionally { throw it }
     }
-
     fun createSession(
         data: String,
         sessionTime: Long,
