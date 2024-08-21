@@ -78,7 +78,9 @@ class MainActivity : AppCompatActivity() {
                 }
                 Log.d("sessionResponse", res)
                 val tempJson = JSONObject(res)
-                tvResponse.text = tempJson.get("privateKey").toString()
+                runOnUiThread {
+                    tvResponse.text = tempJson.get("privateKey").toString()
+                }
             }
         }
 
@@ -98,8 +100,10 @@ class MainActivity : AppCompatActivity() {
                     if (error != null) {
                         Log.e("MyClass", "Error: ${error.message}")
                     }
-                    sessionId = sessionKey
-                    btnSession.visibility = View.GONE
+                    runOnUiThread {
+                        sessionId = sessionKey
+                        btnSession.visibility = View.GONE
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("MyClass", "Error: ${e.message}")
@@ -114,14 +118,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun onClickLogin() {
         val selectedLoginProvider = Provider.GOOGLE
-        val loginCompletableFuture: CompletableFuture<Web3AuthResponse> =
-            web3Auth.login(LoginParams(selectedLoginProvider))
-
-        loginCompletableFuture.whenComplete { loginResponse, error ->
+        web3Auth.login(LoginParams(selectedLoginProvider)).whenComplete { loginResponse, error ->
             if (error == null) {
                 val jsonObject = JSONObject(gson.toJson(web3Auth.getUserInfo()))
-                tvResponse.text =
-                    jsonObject.toString(4) + "\n Private Key: " + web3Auth.getPrivkey()
+                val text = jsonObject.toString(4) + "\n Private Key: " + web3Auth.getPrivkey()
+                tvResponse.text = text
                 sessionId = loginResponse.sessionId.toString()
                 loginResponse.sessionId?.let { useSessionManageSdk(it) }
             } else {
@@ -133,20 +134,21 @@ class MainActivity : AppCompatActivity() {
     private fun useSessionManageSdk(sessionId: String) {
         sessionManager = SessionManager(this.applicationContext)
         sessionManager.saveSessionId(sessionId)
-        val sessionResponse = sessionManager.authorizeSession(true)
-        sessionResponse.whenComplete { sessionResponse, error ->
+        sessionManager.authorizeSession(true).whenComplete { sessionResponse, error ->
             if (error != null) {
                 Log.e("MyClass", "Error: ${error.message}")
             }
-            btnLogin.visibility = View.GONE
-            btnLogout.visibility = View.VISIBLE
             val tempJson = JSONObject(sessionResponse)
             tempJson.put("userInfo", tempJson.get("store"))
             tempJson.remove("store")
             web3AuthResponse =
                 gson.fromJson(tempJson.toString(), Web3AuthResponse::class.java)
             val jsonObject = JSONObject(gson.toJson(web3AuthResponse))
-            tvResponse.text = jsonObject.toString(4)
+            runOnUiThread {
+                btnLogin.visibility = View.GONE
+                btnLogout.visibility = View.VISIBLE
+                tvResponse.text = jsonObject.toString(4)
+            }
         }
     }
 
