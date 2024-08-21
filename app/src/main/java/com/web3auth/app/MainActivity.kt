@@ -18,7 +18,6 @@ import com.web3auth.core.types.Web3AuthResponse
 import com.web3auth.core.types.WhiteLabelData
 import com.web3auth.session_manager_android.SessionManager
 import org.json.JSONObject
-import java.util.concurrent.CompletableFuture
 
 class MainActivity : AppCompatActivity() {
 
@@ -100,8 +99,8 @@ class MainActivity : AppCompatActivity() {
                     if (error != null) {
                         Log.e("MyClass", "Error: ${error.message}")
                     }
+                    sessionId = sessionKey
                     runOnUiThread {
-                        sessionId = sessionKey
                         btnSession.visibility = View.GONE
                     }
                 }
