@@ -10,7 +10,12 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import com.web3auth.core.Web3Auth
-import com.web3auth.core.types.*
+import com.web3auth.core.types.LoginParams
+import com.web3auth.core.types.Network
+import com.web3auth.core.types.Provider
+import com.web3auth.core.types.Web3AuthOptions
+import com.web3auth.core.types.Web3AuthResponse
+import com.web3auth.core.types.WhiteLabelData
 import com.web3auth.session_manager_android.SessionManager
 import org.json.JSONObject
 import java.util.concurrent.CompletableFuture
@@ -66,10 +71,15 @@ class MainActivity : AppCompatActivity() {
 
         btnAuthorize.setOnClickListener {
             sessionManager = SessionManager(this.applicationContext)
-            val sessionResponse: String = sessionManager.authorizeSession(false).get()
-            Log.d("sessionResponse", sessionResponse)
-            val tempJson = JSONObject(sessionResponse)
-            tvResponse.text = tempJson.get("privateKey").toString()
+            val sessionResponse = sessionManager.authorizeSession(false)
+            sessionResponse.whenComplete { res, error ->
+                if (error != null) {
+                    Log.e("MyClass", "Error: ${error.message}")
+                }
+                Log.d("sessionResponse", res)
+                val tempJson = JSONObject(res)
+                tvResponse.text = tempJson.get("privateKey").toString()
+            }
         }
 
         btnSession.setOnClickListener {
@@ -83,12 +93,15 @@ class MainActivity : AppCompatActivity() {
             json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
             try {
                 val sessionKey =
-                    sessionManager.createSession(json.toString(), sessionTime, true).get()
-                // Handle the session key
-                sessionId = sessionKey
-                btnSession.visibility = View.GONE
+                    sessionManager.createSession(json.toString(), sessionTime, true)
+                sessionKey.whenComplete { sessionKey, error ->
+                    if (error != null) {
+                        Log.e("MyClass", "Error: ${error.message}")
+                    }
+                    sessionId = sessionKey
+                    btnSession.visibility = View.GONE
+                }
             } catch (e: Exception) {
-                // Handle the error
                 Log.e("MyClass", "Error: ${e.message}")
             }
         }
@@ -120,16 +133,21 @@ class MainActivity : AppCompatActivity() {
     private fun useSessionManageSdk(sessionId: String) {
         sessionManager = SessionManager(this.applicationContext)
         sessionManager.saveSessionId(sessionId)
-        val sessionResponse: String = sessionManager.authorizeSession(true).get()
-        btnLogin.visibility = View.GONE
-        btnLogout.visibility = View.VISIBLE
-        val tempJson = JSONObject(sessionResponse)
-        tempJson.put("userInfo", tempJson.get("store"))
-        tempJson.remove("store")
-        web3AuthResponse =
-            gson.fromJson(tempJson.toString(), Web3AuthResponse::class.java)
-        val jsonObject = JSONObject(gson.toJson(web3AuthResponse))
-        tvResponse.text = jsonObject.toString(4)
+        val sessionResponse = sessionManager.authorizeSession(true)
+        sessionResponse.whenComplete { sessionResponse, error ->
+            if (error != null) {
+                Log.e("MyClass", "Error: ${error.message}")
+            }
+            btnLogin.visibility = View.GONE
+            btnLogout.visibility = View.VISIBLE
+            val tempJson = JSONObject(sessionResponse)
+            tempJson.put("userInfo", tempJson.get("store"))
+            tempJson.remove("store")
+            web3AuthResponse =
+                gson.fromJson(tempJson.toString(), Web3AuthResponse::class.java)
+            val jsonObject = JSONObject(gson.toJson(web3AuthResponse))
+            tvResponse.text = jsonObject.toString(4)
+        }
     }
 
     private fun logout() {
