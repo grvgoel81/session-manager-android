@@ -1,5 +1,7 @@
+build/
 app/build/
 .gradle/
 .idea/
 session-manager-android/build
 local.properties
+**/*.DS_Store

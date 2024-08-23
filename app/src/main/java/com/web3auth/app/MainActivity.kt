@@ -70,7 +70,7 @@ class MainActivity : AppCompatActivity() {
 
         btnAuthorize.setOnClickListener {
             sessionManager = SessionManager(this.applicationContext)
-            val sessionResponse = sessionManager.authorizeSession(false)
+            val sessionResponse = sessionManager.authorizeSession(this.applicationContext)
             sessionResponse.whenComplete { res, error ->
                 if (error != null) {
                     Log.e("MyClass", "Error: ${error.message}")
@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity() {
             json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
             try {
                 val sessionKey =
-                    sessionManager.createSession(json.toString(), sessionTime, true)
+                    sessionManager.createSession(json.toString(), sessionTime, this.applicationContext)
                 sessionKey.whenComplete { sessionKey, error ->
                     if (error != null) {
                         Log.e("MyClass", "Error: ${error.message}")
@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
     private fun useSessionManageSdk(sessionId: String) {
         sessionManager = SessionManager(this.applicationContext)
         sessionManager.saveSessionId(sessionId)
-        sessionManager.authorizeSession(true).whenComplete { sessionResponse, error ->
+        sessionManager.authorizeSession(this.applicationContext).whenComplete { sessionResponse, error ->
             if (error != null) {
                 Log.e("MyClass", "Error: ${error.message}")
             }
@@ -153,7 +153,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun logout() {
         sessionManager = SessionManager(this.applicationContext)
-        sessionManager.invalidateSession()
+        sessionManager.invalidateSession(this.applicationContext)
         btnLogout.visibility = View.GONE
         btnLogin.visibility = View.VISIBLE
         tvResponse.text = "Logout"

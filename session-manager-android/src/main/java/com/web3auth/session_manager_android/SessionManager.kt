@@ -1,7 +1,6 @@
 package com.web3auth.session_manager_android
 
 import android.content.Context
-import android.util.Base64.encode
 import com.google.gson.GsonBuilder
 import com.web3auth.session_manager_android.api.ApiHelper
 import com.web3auth.session_manager_android.api.Web3AuthApi
@@ -9,12 +8,13 @@ import com.web3auth.session_manager_android.keystore.KeyStoreManager
 import com.web3auth.session_manager_android.models.SessionRequestBody
 import com.web3auth.session_manager_android.models.StoreApiResponse
 import com.web3auth.session_manager_android.types.AES256CBC
+import com.web3auth.session_manager_android.types.Ecies
 import com.web3auth.session_manager_android.types.ErrorCode
 import com.web3auth.session_manager_android.types.SessionManagerError
-import com.web3auth.session_manager_android.types.ShareMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.bouncycastle.util.encoders.Hex
 import org.json.JSONObject
 import retrofit2.Response
 import java.math.BigInteger
@@ -26,7 +26,6 @@ class SessionManager(context: Context) {
 
     private val gson = GsonBuilder().disableHtmlEscaping().create()
     private val web3AuthApi = ApiHelper.getInstance().create(Web3AuthApi::class.java)
-    private val mContext = context
 
     companion object {
         fun generateRandomSessionKey(): String {
@@ -46,23 +45,23 @@ class SessionManager(context: Context) {
     fun saveSessionId(sessionId: String) {
         if (sessionId.isNotEmpty()) {
             KeyStoreManager.savePreferenceData(
-                KeyStoreManager.SESSION_ID, sessionId
+                KeyStoreManager.SESSION_ID_TAG, sessionId
             )
         }
     }
 
     fun getSessionId(): String {
-        return KeyStoreManager.getPreferencesData(KeyStoreManager.SESSION_ID).toString()
+        return KeyStoreManager.getPreferencesData(KeyStoreManager.SESSION_ID_TAG).toString()
     }
 
     /**
      * Authorize User session in order to avoid re-login
      */
 
-    fun authorizeSession(fromOpenLogin: Boolean): CompletableFuture<String> {
+    fun authorizeSession(context: Context): CompletableFuture<String> {
         return CompletableFuture.supplyAsync {
             val sessionId =
-                KeyStoreManager.getPreferencesData(KeyStoreManager.SESSION_ID).toString()
+                getSessionId()
 
             if (sessionId.isEmpty()) {
                 throw Exception(
@@ -72,14 +71,14 @@ class SessionManager(context: Context) {
                 )
             }
 
-            if (!(sessionId.isNotEmpty() && ApiHelper.isNetworkAvailable(mContext))) {
+            if (!(sessionId.isNotEmpty() && ApiHelper.isNetworkAvailable(context))) {
                 throw Exception(
                     SessionManagerError.getError(
                         ErrorCode.RUNTIME_ERROR
                     )
                 )
             }
-            val pubKey = "04".plus(KeyStoreManager.getPubKey(sessionId))
+            val pubKey = "04".plus(KeyStoreManager.getPubKey(sessionId).padStart(128,'0'))
             val response: Response<StoreApiResponse> =
                 runBlocking { withContext(Dispatchers.IO) { web3AuthApi.authorizeSession(pubKey) } }
 
@@ -95,38 +94,21 @@ class SessionManager(context: Context) {
             val messageObj =
                 response.body()?.message?.let { JSONObject(it).toString() }
 
-            val shareMetadata: ShareMetadata = gson.fromJson(
-                messageObj, ShareMetadata::class.java
+            val ecies: Ecies = gson.fromJson(
+                messageObj, Ecies::class.java
             )
 
-            val aes256cbc = AES256CBC(
-                sessionId,
-                shareMetadata.ephemPublicKey,
-                shareMetadata.iv.toString()
-            )
-
-            val share = if (fromOpenLogin) {
-                val encryptedShareBytes =
-                    AES256CBC.toByteArray(shareMetadata.ciphertext?.let {
-                        BigInteger(
-                            it,
-                            16
-                        )
-                    })
-                aes256cbc.decrypt(
-                    String(encode(encryptedShareBytes, 0), StandardCharsets.UTF_8),
-                    shareMetadata.mac
-                )
-            } else {
-                aes256cbc.decrypt(shareMetadata.ciphertext, shareMetadata.mac)
-            }
+            val aes256cbc = AES256CBC()
+            val aesKey = aes256cbc.getAESKey(sessionId, ecies.ephemPublicKey)
+            val macKey = aes256cbc.getMacKey(sessionId, ecies.ephemPublicKey)
+            val share = aes256cbc.decrypt(ecies.ciphertext, aesKey, macKey, ecies.mac, Hex.decode(ecies.iv), Hex.decode(ecies.ephemPublicKey))
             String(share, Charsets.UTF_8)
         }.exceptionally { throw it }
     }
 
-    fun invalidateSession(): CompletableFuture<Boolean> {
+    fun invalidateSession(context: Context): CompletableFuture<Boolean> {
         return CompletableFuture.supplyAsync {
-            if (!ApiHelper.isNetworkAvailable(mContext)) {
+            if (!ApiHelper.isNetworkAvailable(context)) {
                 throw Exception(
                     SessionManagerError.getError(
                         ErrorCode.RUNTIME_ERROR
@@ -134,27 +116,25 @@ class SessionManager(context: Context) {
                 )
             }
 
-            val sessionId =
-                KeyStoreManager.getPreferencesData(KeyStoreManager.SESSION_ID)
-                    .toString()
-            val ephemKey = "04" + KeyStoreManager.getPubKey(sessionId)
+            val sessionId = getSessionId()
+            val ephemKey = "04" + KeyStoreManager.getPubKey(sessionId).padStart(128,'0')
             val ivKey = KeyStoreManager.randomBytes(16)
 
-            val aes256cbc = AES256CBC(
-                sessionId, ephemKey, KeyStoreManager.convertByteToHexadecimal(ivKey)
-            )
+            val aes256cbc = AES256CBC()
             if (ephemKey.isEmpty() || sessionId.isEmpty()) {
                 false
             } else {
 
+                val aesKey = aes256cbc.getAESKey(sessionId, ephemKey)
+                val macKey = aes256cbc.getMacKey(sessionId, ephemKey)
                 val encryptedData =
-                    aes256cbc.encrypt("".toByteArray(StandardCharsets.UTF_8))
-                val mac = aes256cbc.getMac(encryptedData)
-                val encryptedMetadata = ShareMetadata(
-                    KeyStoreManager.convertByteToHexadecimal(ivKey),
+                    aes256cbc.encrypt("".toByteArray(StandardCharsets.UTF_8), aesKey, ivKey)
+                val mac = aes256cbc.getMac(encryptedData, macKey,ivKey,Hex.decode(ephemKey))
+                val encryptedMetadata = Ecies(
+                    Hex.toHexString(ivKey),
                     ephemKey,
-                    KeyStoreManager.convertByteToHexadecimal(encryptedData),
-                    KeyStoreManager.convertByteToHexadecimal(mac)
+                    Hex.toHexString(encryptedData),
+                    Hex.toHexString(mac)
                 )
                 val gsonData = gson.toJson(encryptedMetadata)
 
@@ -162,7 +142,7 @@ class SessionManager(context: Context) {
                     withContext(Dispatchers.IO) {
                         web3AuthApi.invalidateSession(
                             SessionRequestBody(
-                                key = "04".plus(KeyStoreManager.getPubKey(sessionId = sessionId)),
+                                key = "04".plus(KeyStoreManager.getPubKey(sessionId = sessionId).padStart(128,'0')),
                                 data = gsonData,
                                 signature = KeyStoreManager.getECDSASignature(
                                     BigInteger(sessionId, 16), gsonData
@@ -174,7 +154,7 @@ class SessionManager(context: Context) {
                 }
 
                 if (result.isSuccessful) {
-                    KeyStoreManager.deletePreferencesData(KeyStoreManager.SESSION_ID)
+                    KeyStoreManager.deletePreferencesData(KeyStoreManager.SESSION_ID_TAG)
                     true
                 } else {
                     throw Exception(
@@ -189,29 +169,29 @@ class SessionManager(context: Context) {
     fun createSession(
         data: String,
         sessionTime: Long,
-        saveSession: Boolean
+        context: Context
     ): CompletableFuture<String> {
         return CompletableFuture.supplyAsync {
             val newSessionKey = generateRandomSessionKey()
-            if (!ApiHelper.isNetworkAvailable(mContext)) {
+            if (!ApiHelper.isNetworkAvailable(context)) {
                 throw Exception(
                     SessionManagerError.getError(ErrorCode.RUNTIME_ERROR)
                 )
             }
 
-            val ephemKey = "04" + KeyStoreManager.getPubKey(newSessionKey)
+            val ephemKey = "04" + KeyStoreManager.getPubKey(newSessionKey).padStart(128,'0')
             val ivKey = KeyStoreManager.randomBytes(16)
-            val aes256cbc = AES256CBC(
-                newSessionKey, ephemKey, KeyStoreManager.convertByteToHexadecimal(ivKey)
-            )
+            val aes256cbc = AES256CBC()
+            val aesKey = aes256cbc.getAESKey(newSessionKey, ephemKey)
+            val macKey = aes256cbc.getMacKey(newSessionKey, ephemKey)
 
-            val encryptedData = aes256cbc.encrypt(data.toByteArray(StandardCharsets.UTF_8))
-            val mac = aes256cbc.getMac(encryptedData)
-            val encryptedMetadata = ShareMetadata(
-                KeyStoreManager.convertByteToHexadecimal(ivKey),
+            val encryptedData = aes256cbc.encrypt(data.toByteArray(StandardCharsets.UTF_8), aesKey, ivKey)
+            val mac = aes256cbc.getMac(encryptedData, macKey, ivKey, Hex.decode(ephemKey))
+            val encryptedMetadata = Ecies(
+                Hex.toHexString(ivKey),
                 ephemKey,
-                KeyStoreManager.convertByteToHexadecimal(encryptedData),
-                KeyStoreManager.convertByteToHexadecimal(mac)
+                Hex.toHexString(encryptedData),
+                Hex.toHexString(mac)
             )
             val gsonData = gson.toJson(encryptedMetadata)
 
@@ -219,7 +199,7 @@ class SessionManager(context: Context) {
                 withContext(Dispatchers.IO) {
                     web3AuthApi.createSession(
                         SessionRequestBody(
-                            key = "04".plus(KeyStoreManager.getPubKey(sessionId = newSessionKey)),
+                            key = "04".plus(KeyStoreManager.getPubKey(sessionId = newSessionKey).padStart(128,'0')),
                             data = gsonData,
                             signature = KeyStoreManager.getECDSASignature(
                                 BigInteger(newSessionKey, 16), gsonData
@@ -231,17 +211,15 @@ class SessionManager(context: Context) {
             }
 
             if (result.isSuccessful) {
-                if (saveSession) {
                     KeyStoreManager.savePreferenceData(
-                        KeyStoreManager.SESSION_ID, newSessionKey
+                        KeyStoreManager.SESSION_ID_TAG, newSessionKey
                     )
-                } else {
-                    throw Exception(
-                        SessionManagerError.getError(
-                            ErrorCode.SOMETHING_WENT_WRONG
-                        )
+            } else {
+                throw Exception(
+                    SessionManagerError.getError(
+                        ErrorCode.SOMETHING_WENT_WRONG
                     )
-                }
+                )
             }
             newSessionKey
         }.exceptionally { throw it }

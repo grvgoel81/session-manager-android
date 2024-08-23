@@ -27,7 +27,7 @@ class SessionManagerTest {
         val sessionKey = sessionManager.createSession(
             json.toString(),
             86400,
-            true
+            context
         ).get()
         assert(sessionKey != null)
     }
@@ -37,12 +37,24 @@ class SessionManagerTest {
     fun test_authorizeSession() {
         val context = InstrumentationRegistry.getInstrumentation().context
         sessionManager = SessionManager(context)
-        val authResponse = sessionManager.authorizeSession(
-            false
+        val json = JSONObject()
+        json.put(
+            "privateKey",
+            "91714924788458331086143283967892938475657483928374623640418082526960471979197446884"
+        )
+        json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
+        sessionManager.createSession(
+            json.toString(),
+            86400,
+            context
         ).get()
-        val json = JSONObject(authResponse)
-        assert(json.get("privateKey").toString().isNotEmpty())
-        assert(json.get("publicAddress").toString().isNotEmpty())
+        sessionManager = SessionManager(context)
+        val authResponse = sessionManager.authorizeSession(
+            context
+        ).get()
+        val resp = JSONObject(authResponse)
+        assert(resp.get("privateKey").toString().isNotEmpty())
+        assert(resp.get("publicAddress").toString().isNotEmpty())
     }
 
     @Test
@@ -50,7 +62,19 @@ class SessionManagerTest {
     fun test_invalidateSession() {
         val context = InstrumentationRegistry.getInstrumentation().context
         sessionManager = SessionManager(context)
-        val invalidateRes = sessionManager.invalidateSession().get()
+        val json = JSONObject()
+        json.put(
+            "privateKey",
+            "91714924788458331086143283967892938475657483928374623640418082526960471979197446884"
+        )
+        json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
+        sessionManager.createSession(
+            json.toString(),
+            86400,
+            context
+        ).get()
+        sessionManager = SessionManager(context)
+        val invalidateRes = sessionManager.invalidateSession(context).get()
         assertEquals(invalidateRes, true)
     }
 }

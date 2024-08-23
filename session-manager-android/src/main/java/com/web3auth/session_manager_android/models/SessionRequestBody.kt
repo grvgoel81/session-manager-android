@@ -4,8 +4,8 @@ import androidx.annotation.Keep
 
 @Keep
 data class SessionRequestBody(
-    val key: String? = null,
-    val data: String? = null,
-    val signature: String? = null,
+    val key: String,
+    val data: String,
+    val signature: String,
     val timeout: Long = 0L
 )
