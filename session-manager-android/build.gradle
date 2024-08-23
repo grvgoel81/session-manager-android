@@ -64,7 +64,6 @@ project.afterEvaluate {
         publications {
             release(MavenPublication) {
                 from components.release
-                artifact("$buildDir/outputs/aar/app-release.aar")
             }
         }
     }
