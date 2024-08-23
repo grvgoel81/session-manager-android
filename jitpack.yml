@@ -1,6 +1,3 @@
-install:
-  - ./gradlew clean assembleRelease
-
 artifacts:
   - path: app/build/outputs/aar
     type: aar
