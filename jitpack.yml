@@ -1,3 +1,2 @@
-artifacts:
-  - path: app/build/outputs/aar
-    type: aar
+jdk:
+  - openjdk11
