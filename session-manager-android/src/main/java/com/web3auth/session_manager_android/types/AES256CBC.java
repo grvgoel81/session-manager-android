@@ -25,7 +25,7 @@ public class AES256CBC {
 
     public byte[] getAESKey(String privateKeyHex, String ephemPublicKeyHex) throws NoSuchAlgorithmException {
         byte[] hash = SHA512.digest(toByteArray(ecdh(privateKeyHex, ephemPublicKeyHex)));
-        return Arrays.copyOfRange(hash, 32, hash.length);
+        return Arrays.copyOfRange(hash, 0, 32);
     }
     public byte[] getMacKey(String privateKeyHex, String ephemPublicKeyHex) throws NoSuchAlgorithmException {
         byte[] hash = SHA512.digest(toByteArray(ecdh(privateKeyHex, ephemPublicKeyHex)));
