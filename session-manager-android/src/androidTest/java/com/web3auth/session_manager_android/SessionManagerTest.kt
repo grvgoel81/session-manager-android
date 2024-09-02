@@ -2,7 +2,10 @@ package com.web3auth.session_manager_android
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.web3auth.session_manager_android.keystore.KeyStoreManager
+import com.web3auth.session_manager_android.types.AES256CBC
 import junit.framework.TestCase.assertEquals
+import org.bouncycastle.util.encoders.Hex
 import org.json.JSONObject
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -76,5 +79,25 @@ class SessionManagerTest {
         sessionManager = SessionManager(context)
         val invalidateRes = sessionManager.invalidateSession(context).get()
         assertEquals(invalidateRes, true)
+    }
+
+    @Test
+    @Throws(ExecutionException::class)
+    fun testAes() {
+        val message = "Hello World"
+        val sessionId = KeyStoreManager.generateRandomSessionKey()
+        val ephemKey = "04" + KeyStoreManager.getPubKey(sessionId).padStart(128,'0')
+        val aes256cbc = AES256CBC()
+        val aesKey = aes256cbc.getAESKey(sessionId, ephemKey)
+        val iv = KeyStoreManager.randomBytes(16)
+        val macKey = aes256cbc.getMacKey(sessionId, ephemKey)
+        assert(!aesKey.contentEquals(macKey))
+        assert(aesKey.size == 32)
+        assert(macKey.size == 32)
+        val encrypted = aes256cbc.encrypt(message.toByteArray(Charsets.UTF_8), aesKey, iv);
+        val mac = aes256cbc.getMac(encrypted, macKey, iv, Hex.decode(ephemKey))
+        val decrypted = aes256cbc.decrypt(Hex.toHexString(encrypted),aesKey,macKey, Hex.toHexString(mac), iv, Hex.decode(ephemKey))
+        val decryptedString = String(decrypted, Charsets.UTF_8)
+        assert(decryptedString == message)
     }
 }
