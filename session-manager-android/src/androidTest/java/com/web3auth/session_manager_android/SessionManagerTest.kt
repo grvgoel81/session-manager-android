@@ -94,7 +94,7 @@ class SessionManagerTest {
         assert(!aesKey.contentEquals(macKey))
         assert(aesKey.size == 32)
         assert(macKey.size == 32)
-        val encrypted = aes256cbc.encrypt(message.toByteArray(Charsets.UTF_8), aesKey, iv);
+        val encrypted = aes256cbc.encrypt(message.toByteArray(Charsets.UTF_8), aesKey, iv)
         val mac = aes256cbc.getMac(encrypted, macKey, iv, Hex.decode(ephemKey))
         val decrypted = aes256cbc.decrypt(Hex.toHexString(encrypted),aesKey,macKey, Hex.toHexString(mac), iv, Hex.decode(ephemKey))
         val decryptedString = String(decrypted, Charsets.UTF_8)
