@@ -28,13 +28,3 @@ object SessionManagerError {
         }
     }
 }
-
-enum class ErrorCode {
-    NOUSERFOUND,
-    SESSIONID_NOT_FOUND,
-    ENCODING_ERROR,
-    DECODING_ERROR,
-    RUNTIME_ERROR,
-    SESSION_EXPIRED,
-    SOMETHING_WENT_WRONG,
-}
