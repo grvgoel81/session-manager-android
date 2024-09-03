@@ -78,14 +78,6 @@ class SessionManager(context: Context) {
                     )
                 )
             }
-
-            if (!(sessionId.isNotEmpty() && ApiHelper.isNetworkAvailable(context))) {
-                throw Exception(
-                    SessionManagerError.getError(
-                        ErrorCode.RUNTIME_ERROR
-                    )
-                )
-            }
             val pubKey = "04".plus(KeyStoreManager.getPubKey(sessionId).padStart(128,'0'))
             val response: Response<StoreApiResponse> =
                 runBlocking { withContext(Dispatchers.IO) { web3AuthApi.authorizeSession(pubKey) } }
