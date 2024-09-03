@@ -60,6 +60,14 @@ class SessionManager(context: Context) {
 
     fun authorizeSession(context: Context): CompletableFuture<String> {
         return CompletableFuture.supplyAsync {
+            if (!ApiHelper.isNetworkAvailable(context)) {
+                throw Exception(
+                    SessionManagerError.getError(
+                        ErrorCode.RUNTIME_ERROR
+                    )
+                )
+            }
+
             val sessionId =
                 getSessionId()
 
