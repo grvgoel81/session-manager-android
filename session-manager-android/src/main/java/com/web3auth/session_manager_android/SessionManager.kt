@@ -151,7 +151,7 @@ class SessionManager(context: Context) {
                                     BigInteger(sessionId, 16), gsonData
                                 ),
                                 timeout = 1,
-                                allowedOrigin = allowedOrigin ?: "*"
+                                allowedOrigin = allowedOrigin
                             )
                         )
                     }
