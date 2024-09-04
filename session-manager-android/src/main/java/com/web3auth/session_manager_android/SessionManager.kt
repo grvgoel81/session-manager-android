@@ -122,7 +122,6 @@ class SessionManager(context: Context) {
 
     fun invalidateSession(
         context: Context,
-        allowedOrigin: String = "*"
     ): CompletableFuture<Boolean> {
         return CompletableFuture.supplyAsync {
             if (!ApiHelper.isNetworkAvailable(context)) {
@@ -167,8 +166,7 @@ class SessionManager(context: Context) {
                                 signature = KeyStoreManager.getECDSASignature(
                                     BigInteger(sessionId, 16), gsonData
                                 ),
-                                timeout = 1,
-                                allowedOrigin = allowedOrigin
+                                timeout = 1
                             )
                         )
                     }
