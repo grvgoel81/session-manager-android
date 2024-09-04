@@ -49,7 +49,7 @@ class SessionManagerTest {
         sessionManager.createSession(
             json.toString(),
             86400,
-            context
+            context,
         ).get()
         sessionManager = SessionManager(context)
         val authResponse = sessionManager.authorizeSession(
