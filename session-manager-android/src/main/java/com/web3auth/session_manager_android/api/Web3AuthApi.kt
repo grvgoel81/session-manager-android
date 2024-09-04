@@ -11,12 +11,12 @@ import retrofit2.http.Query
 
 interface Web3AuthApi {
 
-    @POST("/store/set")
+    @POST("/v2/store/set")
     suspend fun createSession(@Body sessionRequestBody: SessionRequestBody): Response<JSONObject>
 
-    @GET("/store/get")
+    @GET("/v2/store/get")
     suspend fun authorizeSession(@Query("key") key: String): Response<StoreApiResponse>
 
-    @POST("/store/set")
+    @POST("/v2/store/set")
     suspend fun invalidateSession(@Body sessionRequestBody: SessionRequestBody): Response<JSONObject>
 }

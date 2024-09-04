@@ -106,7 +106,10 @@ class SessionManager(context: Context) {
         }.exceptionally { throw it }
     }
 
-    fun invalidateSession(context: Context): CompletableFuture<Boolean> {
+    fun invalidateSession(
+        context: Context,
+        allowedOrigin: String = "*"
+    ): CompletableFuture<Boolean> {
         return CompletableFuture.supplyAsync {
             if (!ApiHelper.isNetworkAvailable(context)) {
                 throw Exception(
@@ -147,7 +150,8 @@ class SessionManager(context: Context) {
                                 signature = KeyStoreManager.getECDSASignature(
                                     BigInteger(sessionId, 16), gsonData
                                 ),
-                                timeout = 1
+                                timeout = 1,
+                                allowedOrigin = allowedOrigin ?: "*"
                             )
                         )
                     }
@@ -169,7 +173,8 @@ class SessionManager(context: Context) {
     fun createSession(
         data: String,
         sessionTime: Long,
-        context: Context
+        context: Context,
+        allowedOrigin: String = "*",
     ): CompletableFuture<String> {
         return CompletableFuture.supplyAsync {
             val newSessionKey = generateRandomSessionKey()
@@ -204,7 +209,8 @@ class SessionManager(context: Context) {
                             signature = KeyStoreManager.getECDSASignature(
                                 BigInteger(newSessionKey, 16), gsonData
                             ),
-                            timeout = min(sessionTime, 7 * 86400)
+                            timeout = min(sessionTime, 7 * 86400),
+                            allowedOrigin = allowedOrigin
                         )
                     )
                 }
