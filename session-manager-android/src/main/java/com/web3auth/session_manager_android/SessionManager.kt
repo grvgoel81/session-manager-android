@@ -59,7 +59,7 @@ class SessionManager(context: Context) {
      * Authorize User session in order to avoid re-login
      */
 
-    fun authorizeSession(context: Context): CompletableFuture<String> {
+    fun authorizeSession(origin: String, context: Context): CompletableFuture<String> {
         return CompletableFuture.supplyAsync {
             if (!ApiHelper.isNetworkAvailable(context)) {
                 throw Exception(
@@ -84,13 +84,14 @@ class SessionManager(context: Context) {
                 runBlocking {
                     withContext(Dispatchers.IO) {
                         web3AuthApi.authorizeSession(
+                            origin = origin,
                             AuthorizeSessionRequest(key = pubKey)
                         )
                     }
                 }
 
 
-            if (!(response.isSuccessful && response.body() != null && response.body()?.message != null)) {
+            if (!(response.isSuccessful && response.body() != null && response.body()?.message != "")) {
                 throw Exception(
                     SessionManagerError.getError(
                         ErrorCode.NOUSERFOUND
@@ -122,7 +123,6 @@ class SessionManager(context: Context) {
 
     fun invalidateSession(
         context: Context,
-        allowedOrigin: String = "*"
     ): CompletableFuture<Boolean> {
         return CompletableFuture.supplyAsync {
             if (!ApiHelper.isNetworkAvailable(context)) {
@@ -167,8 +167,7 @@ class SessionManager(context: Context) {
                                 signature = KeyStoreManager.getECDSASignature(
                                     BigInteger(sessionId, 16), gsonData
                                 ),
-                                timeout = 1,
-                                allowedOrigin = allowedOrigin
+                                timeout = 1
                             )
                         )
                     }

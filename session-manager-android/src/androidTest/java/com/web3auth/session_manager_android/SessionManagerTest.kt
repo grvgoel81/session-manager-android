@@ -53,6 +53,7 @@ class SessionManagerTest {
         ).get()
         sessionManager = SessionManager(context)
         val authResponse = sessionManager.authorizeSession(
+            "",
             context
         ).get()
         val resp = JSONObject(authResponse)
