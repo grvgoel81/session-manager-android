@@ -20,7 +20,7 @@ class SessionManagerTest {
     @Throws(ExecutionException::class, InterruptedException::class)
     fun test_createSession() {
         val context = InstrumentationRegistry.getInstrumentation().context
-        sessionManager = SessionManager(context)
+        sessionManager = SessionManager(context, 86400, context.packageName)
         val json = JSONObject()
         json.put(
             "privateKey",
@@ -29,7 +29,6 @@ class SessionManagerTest {
         json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
         val sessionKey = sessionManager.createSession(
             json.toString(),
-            86400,
             context
         ).get()
         assert(sessionKey != null)
@@ -39,7 +38,7 @@ class SessionManagerTest {
     @Throws(ExecutionException::class, InterruptedException::class)
     fun test_authorizeSession() {
         val context = InstrumentationRegistry.getInstrumentation().context
-        sessionManager = SessionManager(context)
+        sessionManager = SessionManager(context, 86400, context.packageName)
         val json = JSONObject()
         json.put(
             "privateKey",
@@ -48,12 +47,11 @@ class SessionManagerTest {
         json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
         sessionManager.createSession(
             json.toString(),
-            86400,
             context,
         ).get()
-        sessionManager = SessionManager(context)
+        sessionManager = SessionManager(context, 86400, "*")
         val authResponse = sessionManager.authorizeSession(
-            "",
+            context.packageName,
             context
         ).get()
         val resp = JSONObject(authResponse)
@@ -65,7 +63,7 @@ class SessionManagerTest {
     @Throws(ExecutionException::class, InterruptedException::class)
     fun test_invalidateSession() {
         val context = InstrumentationRegistry.getInstrumentation().context
-        sessionManager = SessionManager(context)
+        sessionManager = SessionManager(context, 86400, context.packageName)
         val json = JSONObject()
         json.put(
             "privateKey",
@@ -74,10 +72,9 @@ class SessionManagerTest {
         json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
         sessionManager.createSession(
             json.toString(),
-            86400,
             context
         ).get()
-        sessionManager = SessionManager(context)
+        sessionManager = SessionManager(context, 86400, context.packageName)
         val invalidateRes = sessionManager.invalidateSession(context).get()
         assertEquals(invalidateRes, true)
     }
