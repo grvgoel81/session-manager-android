@@ -23,10 +23,12 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletableFuture
 import kotlin.math.min
 
-class SessionManager(context: Context) {
+class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: String = "*") {
 
     private val gson = GsonBuilder().disableHtmlEscaping().create()
     private val web3AuthApi = ApiHelper.getInstance().create(Web3AuthApi::class.java)
+    private var sessionTime: Int
+    private var allowedOrigin: String
 
     companion object {
         fun generateRandomSessionKey(): String {
@@ -37,6 +39,8 @@ class SessionManager(context: Context) {
     init {
         KeyStoreManager.initializePreferences(context.applicationContext)
         initiateKeyStoreManager()
+        this.sessionTime = sessionTime
+        this.allowedOrigin = allowedOrigin
     }
 
     private fun initiateKeyStoreManager() {
@@ -189,9 +193,7 @@ class SessionManager(context: Context) {
 
     fun createSession(
         data: String,
-        sessionTime: Long,
         context: Context,
-        allowedOrigin: String = "*",
     ): CompletableFuture<String> {
         return CompletableFuture.supplyAsync {
             val newSessionKey = generateRandomSessionKey()
