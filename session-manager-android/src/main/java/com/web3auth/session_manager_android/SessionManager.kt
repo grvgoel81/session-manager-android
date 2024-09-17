@@ -23,11 +23,11 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletableFuture
 import kotlin.math.min
 
-class SessionManager(context: Context, sessionTime: Long = 86400, allowedOrigin: String = "*") {
+class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: String = "*") {
 
     private val gson = GsonBuilder().disableHtmlEscaping().create()
     private val web3AuthApi = ApiHelper.getInstance().create(Web3AuthApi::class.java)
-    private var sessionTime: Long
+    private var sessionTime: Int
     private var allowedOrigin: String
 
     companion object {

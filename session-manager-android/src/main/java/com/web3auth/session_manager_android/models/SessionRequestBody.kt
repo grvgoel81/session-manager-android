@@ -7,6 +7,6 @@ data class SessionRequestBody(
     val key: String,
     val data: String,
     val signature: String,
-    val timeout: Long = 0L,
+    val timeout: Int = 0,
     val allowedOrigin: String? = null
 )
