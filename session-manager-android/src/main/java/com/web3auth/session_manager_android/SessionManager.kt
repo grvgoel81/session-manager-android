@@ -94,8 +94,15 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                     }
                 }
 
+            if (!(response.isSuccessful)) {
+                throw Exception(
+                    SessionManagerError.getError(
+                        ErrorCode.SOMETHING_WENT_WRONG
+                    )
+                )
+            }
 
-            if (!(response.isSuccessful && response.body() != null && response.body()?.message != "")) {
+            if (response.body()?.success == false && response.body()?.message.isNullOrEmpty()) {
                 throw Exception(
                     SessionManagerError.getError(
                         ErrorCode.NOUSERFOUND
@@ -105,6 +112,14 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
 
             val messageObj =
                 response.body()?.message?.let { JSONObject(it).toString() }
+
+            if (messageObj.isNullOrEmpty()) {
+                throw Exception(
+                    SessionManagerError.getError(
+                        ErrorCode.NOUSERFOUND
+                    )
+                )
+            }
 
             val ecies: Ecies = gson.fromJson(
                 messageObj, Ecies::class.java
