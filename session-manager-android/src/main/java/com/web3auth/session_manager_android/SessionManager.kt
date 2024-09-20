@@ -209,6 +209,7 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
     fun createSession(
         data: String,
         context: Context,
+        saveSession: Boolean
     ): CompletableFuture<String> {
         return CompletableFuture.supplyAsync {
             val newSessionKey = generateRandomSessionKey()
@@ -254,7 +255,7 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 }
             }
 
-            if (result.isSuccessful) {
+            if (result.isSuccessful && saveSession) {
                 KeyStoreManager.savePreferenceData(
                     KeyStoreManager.SESSION_ID_TAG, newSessionKey
                 )
