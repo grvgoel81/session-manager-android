@@ -234,6 +234,7 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
      * @param data The session data as a string. This can include information such as tokens or user-specific identifiers.
      * @param context The context in which the session is being created. Typically used to access resources or perform operations within the application.
      * @param saveSession A boolean flag that determines whether the session should be persisted. If `true`, the session will be saved for future access.
+     *                    (Should be true for SFA sdk and false for PNP sdk).
      *
      * @return This function can be extended to return a result, such as a success or failure message.
      *
