@@ -59,10 +59,21 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
         return KeyStoreManager.getPreferencesData(KeyStoreManager.SESSION_ID_TAG).toString()
     }
 
-    /**
-     * Authorize User session in order to avoid re-login
-     */
 
+    /**
+     * Authorizes a session for a given origin, performing any necessary authentication or token generation.
+     * This method operates asynchronously and returns a `CompletableFuture` that holds the result of the authorization.
+     *
+     * @param origin A string representing the origin or source of the session. This can be the app's package name or a specific domain.
+     * @param context The context in which the session authorization occurs. Typically used to access resources or perform operations within the application.
+     *
+     * @return A `CompletableFuture<String>` that will contain the result of the session authorization. This will usually be a token or session ID upon successful authorization.
+     *
+     * Usage example:
+     * ```
+     * authorizeSession("com.example.app", context)
+     * ```
+     */
     fun authorizeSession(origin: String, context: Context): CompletableFuture<String> {
         return CompletableFuture.supplyAsync {
             if (!ApiHelper.isNetworkAvailable(context)) {
@@ -140,6 +151,17 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
         }.exceptionally { throw it }
     }
 
+    /**
+     * Invalidates the current session, effectively logging the user out or clearing session-related data.
+     *
+     * @param context The context in which the session invalidation occurs. Typically used to access resources
+     * or perform operations within the application (e.g., clearing shared preferences or cache).
+     *
+     * Usage example:
+     * ```
+     * invalidateSession(context)
+     * ```
+     */
     fun invalidateSession(
         context: Context,
     ): CompletableFuture<Boolean> {
@@ -206,6 +228,20 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
         }.exceptionally { throw it }
     }
 
+    /**
+     * Creates a new session with the provided data.
+     *
+     * @param data The session data as a string. This can include information such as tokens or user-specific identifiers.
+     * @param context The context in which the session is being created. Typically used to access resources or perform operations within the application.
+     * @param saveSession A boolean flag that determines whether the session should be persisted. If `true`, the session will be saved for future access.
+     *
+     * @return This function can be extended to return a result, such as a success or failure message.
+     *
+     * Usage example:
+     * ```
+     * createSession("sessionData", context, <true/false>)
+     * ```
+     */
     fun createSession(
         data: String,
         context: Context,
