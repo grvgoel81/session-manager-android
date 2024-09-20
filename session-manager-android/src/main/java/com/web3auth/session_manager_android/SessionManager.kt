@@ -292,10 +292,12 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 }
             }
 
-            if (result.isSuccessful && saveSession) {
-                KeyStoreManager.savePreferenceData(
-                    KeyStoreManager.SESSION_ID_TAG, newSessionKey
-                )
+            if (result.isSuccessful) {
+                if (saveSession) {
+                    KeyStoreManager.savePreferenceData(
+                        KeyStoreManager.SESSION_ID_TAG, newSessionKey
+                    )
+                }
             } else {
                 throw Exception(
                     SessionManagerError.getError(
