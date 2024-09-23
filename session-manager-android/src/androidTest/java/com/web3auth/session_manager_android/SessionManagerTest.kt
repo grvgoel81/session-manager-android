@@ -77,6 +77,8 @@ class SessionManagerTest {
         sessionManager = SessionManager(context, 86400, context.packageName)
         val invalidateRes = sessionManager.invalidateSession(context).get()
         assertEquals(invalidateRes, true)
+        val res = sessionManager.getSessionId().isNotEmpty()
+        assertEquals(res, false)
     }
 
     @Test
