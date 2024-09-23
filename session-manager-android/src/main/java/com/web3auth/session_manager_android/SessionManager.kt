@@ -148,7 +148,12 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 Hex.decode(ecies.ephemPublicKey)
             )
             String(share, Charsets.UTF_8)
-        }.exceptionally { throw it }
+        }.handle { result, exception ->
+            if (exception != null) {
+                return@handle "Error: ${exception.message}"
+            }
+            result
+        }
     }
 
     /**
@@ -225,7 +230,14 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                     )
                 }
             }
-        }.exceptionally { throw it }
+        }.handle { result, exception ->
+            if (exception != null) {
+                println("Error: ${exception.message}")
+                false
+            } else {
+                result
+            }
+        }
     }
 
     /**
@@ -233,20 +245,17 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
      *
      * @param data The session data as a string. This can include information such as tokens or user-specific identifiers.
      * @param context The context in which the session is being created. Typically used to access resources or perform operations within the application.
-     * @param saveSession A boolean flag that determines whether the session should be persisted. If `true`, the session will be saved for future access.
-     *                    (Should be true for SFA sdk and false for PNP sdk).
      *
      * @return This function can be extended to return a result, such as a success or failure message.
      *
      * Usage example:
      * ```
-     * createSession("sessionData", context, <true/false>)
+     * createSession("sessionData", context)
      * ```
      */
     fun createSession(
         data: String,
         context: Context,
-        saveSession: Boolean
     ): CompletableFuture<String> {
         return CompletableFuture.supplyAsync {
             val newSessionKey = generateRandomSessionKey()
@@ -293,11 +302,7 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
             }
 
             if (result.isSuccessful) {
-                if (saveSession) {
-                    KeyStoreManager.savePreferenceData(
-                        KeyStoreManager.SESSION_ID_TAG, newSessionKey
-                    )
-                }
+                // do nothing
             } else {
                 throw Exception(
                     SessionManagerError.getError(
@@ -306,6 +311,11 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 )
             }
             newSessionKey
-        }.exceptionally { throw it }
+        }.handle { result, exception ->
+            if (exception != null) {
+                return@handle "Error: ${exception.message}"
+            }
+            result
+        }
     }
 }
