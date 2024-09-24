@@ -29,7 +29,7 @@ class SessionManagerTest {
         json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
         val sessionKey = sessionManager.createSession(
             json.toString(),
-            context, true
+            context
         ).get()
         assert(sessionKey != null)
     }
@@ -45,10 +45,11 @@ class SessionManagerTest {
             "91714924788458331086143283967892938475657483928374623640418082526960471979197446884"
         )
         json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
-        sessionManager.createSession(
+        val sessionId = sessionManager.createSession(
             json.toString(),
-            context, true
+            context
         ).get()
+        sessionManager.saveSessionId(sessionId)
         sessionManager = SessionManager(context, 86400, "*")
         val authResponse = sessionManager.authorizeSession(
             context.packageName,
@@ -70,10 +71,11 @@ class SessionManagerTest {
             "91714924788458331086143283967892938475657483928374623640418082526960471979197446884"
         )
         json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
-        sessionManager.createSession(
+        val sessionId = sessionManager.createSession(
             json.toString(),
-            context, true
+            context
         ).get()
+        sessionManager.saveSessionId(sessionId)
         sessionManager = SessionManager(context, 86400, context.packageName)
         val invalidateRes = sessionManager.invalidateSession(context).get()
         assertEquals(invalidateRes, true)

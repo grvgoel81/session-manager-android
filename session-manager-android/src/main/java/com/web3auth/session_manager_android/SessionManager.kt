@@ -148,12 +148,7 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 Hex.decode(ecies.ephemPublicKey)
             )
             String(share, Charsets.UTF_8)
-        }.handle { result, exception ->
-            if (exception != null) {
-                return@handle "Error: ${exception.message}"
-            }
-            result
-        }
+        }.exceptionally { throw it }
     }
 
     /**
@@ -230,14 +225,7 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                     )
                 }
             }
-        }.handle { result, exception ->
-            if (exception != null) {
-                println("Error: ${exception.message}")
-                false
-            } else {
-                result
-            }
-        }
+        }.exceptionally { throw it }
     }
 
     /**
@@ -311,11 +299,6 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 )
             }
             newSessionKey
-        }.handle { result, exception ->
-            if (exception != null) {
-                return@handle "Error: ${exception.message}"
-            }
-            result
-        }
+        }.exceptionally { throw it }
     }
 }
