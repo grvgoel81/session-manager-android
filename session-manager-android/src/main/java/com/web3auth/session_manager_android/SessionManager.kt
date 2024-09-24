@@ -289,9 +289,7 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 }
             }
 
-            if (result.isSuccessful) {
-                // do nothing
-            } else {
+            if (!result.isSuccessful) {
                 throw Exception(
                     SessionManagerError.getError(
                         ErrorCode.SOMETHING_WENT_WRONG
