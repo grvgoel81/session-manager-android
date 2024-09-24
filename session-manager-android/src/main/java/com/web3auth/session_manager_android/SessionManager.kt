@@ -232,7 +232,6 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
             }
         }.handle { result, exception ->
             if (exception != null) {
-                println("Error: ${exception.message}")
                 false
             } else {
                 result
