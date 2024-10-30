@@ -23,40 +23,63 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletableFuture
 import kotlin.math.min
 
-class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: String = "*") {
+class SessionManager(
+    context: Context,
+    sessionTime: Int = 86400,
+    allowedOrigin: String = "*",
+    sessionId: String? = null
+) {
 
     private val gson = GsonBuilder().disableHtmlEscaping().create()
     private val web3AuthApi = ApiHelper.getInstance().create(Web3AuthApi::class.java)
     private var sessionTime: Int
     private var allowedOrigin: String
+    private lateinit var sessionId: String
 
     companion object {
         fun generateRandomSessionKey(): String {
             return KeyStoreManager.generateRandomSessionKey()
+        }
+
+        fun getSessionIdFromStorage(): String {
+            return KeyStoreManager.getPreferencesData(KeyStoreManager.SESSION_ID_TAG).toString()
+        }
+
+        fun deleteSessionIdFromStorage() {
+            KeyStoreManager.deletePreferencesData(KeyStoreManager.SESSION_ID_TAG)
+        }
+
+        fun saveSessionIdToStorage(sessionId: String) {
+            if (sessionId.isNotEmpty() && sessionId.isNotBlank()) {
+                KeyStoreManager.savePreferenceData(KeyStoreManager.SESSION_ID_TAG, sessionId)
+            }
         }
     }
 
     init {
         KeyStoreManager.initializePreferences(context.applicationContext)
         initiateKeyStoreManager()
+        if (sessionId != null) {
+            if (sessionId.isNotEmpty()) {
+                this.sessionId = sessionId
+            }
+        }
         this.sessionTime = sessionTime
         this.allowedOrigin = allowedOrigin
     }
 
-    private fun initiateKeyStoreManager() {
-        KeyStoreManager.getKeyGenerator()
-    }
-
-    fun saveSessionId(sessionId: String) {
+    fun setSessionId(sessionId: String) {
         if (sessionId.isNotEmpty()) {
-            KeyStoreManager.savePreferenceData(
-                KeyStoreManager.SESSION_ID_TAG, sessionId
-            )
+            this.sessionId = sessionId
         }
     }
 
     fun getSessionId(): String {
-        return KeyStoreManager.getPreferencesData(KeyStoreManager.SESSION_ID_TAG).toString()
+        return this.sessionId
+    }
+
+    private fun initiateKeyStoreManager() {
+        KeyStoreManager.getKeyGenerator()
     }
 
 
@@ -84,10 +107,9 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 )
             }
 
-            val sessionId =
-                getSessionId()
+            val sessionId = this.sessionId
 
-            if (sessionId.isEmpty()) {
+            if (sessionId.isNullOrEmpty()) {
                 throw Exception(
                     SessionManagerError.getError(
                         ErrorCode.SESSIONID_NOT_FOUND
@@ -174,7 +196,14 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 )
             }
 
-            val sessionId = getSessionId()
+            val sessionId = this.sessionId
+            if (sessionId.isNullOrEmpty()) {
+                throw Exception(
+                    SessionManagerError.getError(
+                        ErrorCode.SESSIONID_NOT_FOUND
+                    )
+                )
+            }
             val ephemKey = "04" + KeyStoreManager.getPubKey(sessionId).padStart(128, '0')
             val ivKey = KeyStoreManager.randomBytes(16)
 
@@ -215,7 +244,6 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 }
 
                 if (result.isSuccessful) {
-                    KeyStoreManager.deletePreferencesData(KeyStoreManager.SESSION_ID_TAG)
                     true
                 } else {
                     throw Exception(
@@ -246,7 +274,11 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
         context: Context,
     ): CompletableFuture<String> {
         return CompletableFuture.supplyAsync {
-            val newSessionKey = generateRandomSessionKey()
+            val newSessionKey = this.sessionId
+
+            if (newSessionKey.isNullOrEmpty()) {
+                throw Exception(SessionManagerError.getError(ErrorCode.SESSIONID_NOT_FOUND))
+            }
             if (!ApiHelper.isNetworkAvailable(context)) {
                 throw Exception(
                     SessionManagerError.getError(ErrorCode.RUNTIME_ERROR)
@@ -289,9 +321,7 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 }
             }
 
-            if (result.isSuccessful) {
-                // do nothing
-            } else {
+            if (!result.isSuccessful) {
                 throw Exception(
                     SessionManagerError.getError(
                         ErrorCode.SOMETHING_WENT_WRONG
