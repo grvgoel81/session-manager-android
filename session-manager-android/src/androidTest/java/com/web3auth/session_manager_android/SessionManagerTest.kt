@@ -5,6 +5,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.web3auth.session_manager_android.keystore.KeyStoreManager
 import com.web3auth.session_manager_android.types.AES256CBC
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertTrue
 import org.bouncycastle.util.encoders.Hex
 import org.json.JSONObject
 import org.junit.Test
@@ -20,7 +21,8 @@ class SessionManagerTest {
     @Throws(ExecutionException::class, InterruptedException::class)
     fun test_createSession() {
         val context = InstrumentationRegistry.getInstrumentation().context
-        sessionManager = SessionManager(context, 86400, context.packageName)
+        val sessionId = SessionManager.generateRandomSessionKey()
+        sessionManager = SessionManager(context, 86400, context.packageName, sessionId)
         val json = JSONObject()
         json.put(
             "privateKey",
@@ -38,19 +40,20 @@ class SessionManagerTest {
     @Throws(ExecutionException::class, InterruptedException::class)
     fun test_authorizeSession() {
         val context = InstrumentationRegistry.getInstrumentation().context
-        sessionManager = SessionManager(context, 86400, context.packageName)
+        val sessionId = SessionManager.generateRandomSessionKey()
+        sessionManager = SessionManager(context, 86400, context.packageName, sessionId)
         val json = JSONObject()
         json.put(
             "privateKey",
             "91714924788458331086143283967892938475657483928374623640418082526960471979197446884"
         )
         json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
-        val sessionId = sessionManager.createSession(
+        val created = sessionManager.createSession(
             json.toString(),
             context
         ).get()
-        sessionManager.saveSessionId(sessionId)
-        sessionManager = SessionManager(context, 86400, "*")
+        SessionManager.saveSessionIdToStorage(created)
+        assertTrue(created.isNotEmpty())
         val authResponse = sessionManager.authorizeSession(
             context.packageName,
             context
@@ -64,22 +67,23 @@ class SessionManagerTest {
     @Throws(ExecutionException::class, InterruptedException::class)
     fun test_invalidateSession() {
         val context = InstrumentationRegistry.getInstrumentation().context
-        sessionManager = SessionManager(context, 86400, context.packageName)
+        val sessionId = SessionManager.generateRandomSessionKey()
+        sessionManager = SessionManager(context, 86400, context.packageName, sessionId)
         val json = JSONObject()
         json.put(
             "privateKey",
             "91714924788458331086143283967892938475657483928374623640418082526960471979197446884"
         )
         json.put("publicAddress", "0x93475c78dv0jt80f2b6715a5c53838eC4aC96EF7")
-        val sessionId = sessionManager.createSession(
+        val created = sessionManager.createSession(
             json.toString(),
             context
         ).get()
-        sessionManager.saveSessionId(sessionId)
-        sessionManager = SessionManager(context, 86400, context.packageName)
+        SessionManager.saveSessionIdToStorage(created)
         val invalidateRes = sessionManager.invalidateSession(context).get()
         assertEquals(invalidateRes, true)
-        val res = sessionManager.getSessionId().isNotEmpty()
+        SessionManager.deleteSessionIdFromStorage()
+        val res = SessionManager.getSessionIdFromStorage().isNotEmpty()
         assertEquals(res, false)
     }
 
