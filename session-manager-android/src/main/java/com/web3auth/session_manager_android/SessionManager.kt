@@ -23,46 +23,78 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletableFuture
 import kotlin.math.min
 
-class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: String = "*") {
+class SessionManager(
+    context: Context,
+    sessionTime: Int = 86400,
+    allowedOrigin: String = "*",
+    sessionId: String? = null
+) {
 
     private val gson = GsonBuilder().disableHtmlEscaping().create()
     private val web3AuthApi = ApiHelper.getInstance().create(Web3AuthApi::class.java)
     private var sessionTime: Int
     private var allowedOrigin: String
+    private lateinit var sessionId: String
 
     companion object {
         fun generateRandomSessionKey(): String {
             return KeyStoreManager.generateRandomSessionKey()
+        }
+
+        fun getSessionIdFromStorage(): String {
+            return KeyStoreManager.getPreferencesData(KeyStoreManager.SESSION_ID_TAG).toString()
+        }
+
+        fun deleteSessionIdFromStorage() {
+            KeyStoreManager.deletePreferencesData(KeyStoreManager.SESSION_ID_TAG)
+        }
+
+        fun saveSessionIdToStorage(sessionId: String) {
+            if (sessionId.isNotEmpty() && sessionId.isNotBlank()) {
+                KeyStoreManager.savePreferenceData(KeyStoreManager.SESSION_ID_TAG, sessionId)
+            }
         }
     }
 
     init {
         KeyStoreManager.initializePreferences(context.applicationContext)
         initiateKeyStoreManager()
+        if (sessionId != null && sessionId.isNotEmpty()) {
+            this.sessionId = sessionId
+        }
         this.sessionTime = sessionTime
         this.allowedOrigin = allowedOrigin
+    }
+
+    fun setSessionId(sessionId: String) {
+        if (sessionId.isNotEmpty()) {
+            this.sessionId = sessionId
+        }
+    }
+
+    fun getSessionId(): String {
+        return this.sessionId
     }
 
     private fun initiateKeyStoreManager() {
         KeyStoreManager.getKeyGenerator()
     }
 
-    fun saveSessionId(sessionId: String) {
-        if (sessionId.isNotEmpty()) {
-            KeyStoreManager.savePreferenceData(
-                KeyStoreManager.SESSION_ID_TAG, sessionId
-            )
-        }
-    }
-
-    fun getSessionId(): String {
-        return KeyStoreManager.getPreferencesData(KeyStoreManager.SESSION_ID_TAG).toString()
-    }
 
     /**
-     * Authorize User session in order to avoid re-login
+     * Authorizes a session for a given origin, performing any necessary authentication or token generation.
+     * This method operates asynchronously and returns a `CompletableFuture` that holds the result of the authorization.
+     *
+     * @param origin A string representing the origin or source of the session. This can be the app's package name or a specific domain.
+     * @param context The context in which the session authorization occurs. Typically used to access resources or perform operations within the application.
+     *
+     * @return A `CompletableFuture<String>` that will contain the result of the session authorization. This will usually be a token or session ID upon successful authorization.
+     *
+     * Usage example:
+     * ```
+     * authorizeSession("com.example.app", context)
+     * ```
      */
-
     fun authorizeSession(origin: String, context: Context): CompletableFuture<String> {
         return CompletableFuture.supplyAsync {
             if (!ApiHelper.isNetworkAvailable(context)) {
@@ -73,10 +105,9 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 )
             }
 
-            val sessionId =
-                getSessionId()
+            val sessionId = this.sessionId
 
-            if (sessionId.isEmpty()) {
+            if (sessionId.isNullOrEmpty()) {
                 throw Exception(
                     SessionManagerError.getError(
                         ErrorCode.SESSIONID_NOT_FOUND
@@ -140,6 +171,17 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
         }.exceptionally { throw it }
     }
 
+    /**
+     * Invalidates the current session, effectively logging the user out or clearing session-related data.
+     *
+     * @param context The context in which the session invalidation occurs. Typically used to access resources
+     * or perform operations within the application (e.g., clearing shared preferences or cache).
+     *
+     * Usage example:
+     * ```
+     * invalidateSession(context)
+     * ```
+     */
     fun invalidateSession(
         context: Context,
     ): CompletableFuture<Boolean> {
@@ -152,7 +194,14 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 )
             }
 
-            val sessionId = getSessionId()
+            val sessionId = this.sessionId
+            if (sessionId.isNullOrEmpty()) {
+                throw Exception(
+                    SessionManagerError.getError(
+                        ErrorCode.SESSIONID_NOT_FOUND
+                    )
+                )
+            }
             val ephemKey = "04" + KeyStoreManager.getPubKey(sessionId).padStart(128, '0')
             val ivKey = KeyStoreManager.randomBytes(16)
 
@@ -193,7 +242,6 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 }
 
                 if (result.isSuccessful) {
-                    KeyStoreManager.deletePreferencesData(KeyStoreManager.SESSION_ID_TAG)
                     true
                 } else {
                     throw Exception(
@@ -206,12 +254,29 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
         }.exceptionally { throw it }
     }
 
+    /**
+     * Creates a new session with the provided data.
+     *
+     * @param data The session data as a string. This can include information such as tokens or user-specific identifiers.
+     * @param context The context in which the session is being created. Typically used to access resources or perform operations within the application.
+     *
+     * @return This function can be extended to return a result, such as a success or failure message.
+     *
+     * Usage example:
+     * ```
+     * createSession("sessionData", context)
+     * ```
+     */
     fun createSession(
         data: String,
         context: Context,
     ): CompletableFuture<String> {
         return CompletableFuture.supplyAsync {
-            val newSessionKey = generateRandomSessionKey()
+            val newSessionKey = this.sessionId
+
+            if (newSessionKey.isNullOrEmpty()) {
+                throw Exception(SessionManagerError.getError(ErrorCode.SESSIONID_NOT_FOUND))
+            }
             if (!ApiHelper.isNetworkAvailable(context)) {
                 throw Exception(
                     SessionManagerError.getError(ErrorCode.RUNTIME_ERROR)
@@ -254,11 +319,7 @@ class SessionManager(context: Context, sessionTime: Int = 86400, allowedOrigin: 
                 }
             }
 
-            if (result.isSuccessful) {
-                KeyStoreManager.savePreferenceData(
-                    KeyStoreManager.SESSION_ID_TAG, newSessionKey
-                )
-            } else {
+            if (!result.isSuccessful) {
                 throw Exception(
                     SessionManagerError.getError(
                         ErrorCode.SOMETHING_WENT_WRONG
