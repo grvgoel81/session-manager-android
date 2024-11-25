@@ -50,7 +50,6 @@ public class AES256CBC {
             }
             return b;
         } catch (Exception ex) {
-            ex.printStackTrace();
             throw ex;
         }
     }
