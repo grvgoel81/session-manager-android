@@ -39,14 +39,19 @@ public class AES256CBC {
      * is set. We remove that.
      */
     public static byte[] toByteArray(BigInteger bi) {
-        byte[] b = bi.toByteArray();
-        if (b.length > 1 && b[0] == 0) {
-            int n = b.length - 1;
-            byte[] newArray = new byte[n];
-            System.arraycopy(b, 1, newArray, 0, n);
-            b = newArray;
+        byte[] b;
+        try {
+            b = bi.toByteArray();
+            if (b.length > 1 && b[0] == 0) {
+                int n = b.length - 1;
+                byte[] newArray = new byte[n];
+                System.arraycopy(b, 1, newArray, 0, n);
+                b = newArray;
+            }
+            return b;
+        } catch (Exception ex) {
+            throw ex;
         }
-        return b;
     }
 
     public byte[] encrypt(byte[] src, byte[] aesKey, byte[] iv) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
