@@ -41,7 +41,7 @@ class SessionManagerTest {
     fun test_authorizeSession() {
         val context = InstrumentationRegistry.getInstrumentation().context
         val sessionId = SessionManager.generateRandomSessionKey()
-        sessionManager = SessionManager(context, 86400, context.packageName, sessionId)
+        sessionManager = SessionManager(context, 86400, context.packageName, sessionId, "sfa")
         val json = JSONObject()
         json.put(
             "privateKey",

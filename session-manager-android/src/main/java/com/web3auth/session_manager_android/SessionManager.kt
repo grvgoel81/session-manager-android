@@ -27,13 +27,15 @@ class SessionManager(
     context: Context,
     sessionTime: Int = 86400,
     allowedOrigin: String = "*",
-    sessionId: String? = null
+    sessionId: String? = null,
+    sessionNamespace: String? = "*"
 ) {
 
     private val gson = GsonBuilder().disableHtmlEscaping().create()
     private val web3AuthApi = ApiHelper.getInstance().create(Web3AuthApi::class.java)
     private var sessionTime: Int
     private var allowedOrigin: String
+    private lateinit var sessionNamespace: String
     private lateinit var sessionId: String
 
     companion object {
@@ -64,6 +66,9 @@ class SessionManager(
         }
         this.sessionTime = sessionTime
         this.allowedOrigin = allowedOrigin
+        if (sessionNamespace != null) {
+            this.sessionNamespace = sessionNamespace
+        }
     }
 
     fun setSessionId(sessionId: String) {
@@ -120,7 +125,7 @@ class SessionManager(
                     withContext(Dispatchers.IO) {
                         web3AuthApi.authorizeSession(
                             origin = origin,
-                            AuthorizeSessionRequest(key = pubKey)
+                            AuthorizeSessionRequest(key = pubKey, namespace = sessionNamespace)
                         )
                     }
                 }
@@ -313,7 +318,8 @@ class SessionManager(
                                 BigInteger(newSessionKey, 16), gsonData
                             ),
                             timeout = min(sessionTime, 7 * 86400),
-                            allowedOrigin = allowedOrigin
+                            allowedOrigin = allowedOrigin,
+                            namespace = sessionNamespace
                         )
                     )
                 }

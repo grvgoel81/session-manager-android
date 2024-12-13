@@ -4,5 +4,6 @@ import androidx.annotation.Keep
 
 @Keep
 data class AuthorizeSessionRequest(
-    val key: String
+    val key: String,
+    val namespace: String
 )
