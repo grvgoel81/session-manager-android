@@ -59,10 +59,8 @@ class SessionManager(
     init {
         KeyStoreManager.initializePreferences(context.applicationContext)
         initiateKeyStoreManager()
-        if (sessionId != null) {
-            if (sessionId.isNotEmpty()) {
-                this.sessionId = sessionId
-            }
+        if (sessionId != null && sessionId.isNotEmpty()) {
+            this.sessionId = sessionId
         }
         this.sessionTime = sessionTime
         this.allowedOrigin = allowedOrigin
