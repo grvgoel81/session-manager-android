@@ -28,7 +28,7 @@ class SessionManager(
     sessionTime: Int = 86400,
     allowedOrigin: String = "*",
     sessionId: String? = null,
-    sessionNamespace: String? = "*"
+    sessionNamespace: String? = null
 ) {
 
     private val gson = GsonBuilder().disableHtmlEscaping().create()
