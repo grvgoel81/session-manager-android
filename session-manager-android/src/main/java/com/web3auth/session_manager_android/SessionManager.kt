@@ -35,7 +35,7 @@ class SessionManager(
     private val web3AuthApi = ApiHelper.getInstance().create(Web3AuthApi::class.java)
     private var sessionTime: Int
     private var allowedOrigin: String
-    private lateinit var sessionNamespace: String
+    private var sessionNamespace: String = ""
     private lateinit var sessionId: String
 
     companion object {
@@ -61,12 +61,12 @@ class SessionManager(
     init {
         KeyStoreManager.initializePreferences(context.applicationContext)
         initiateKeyStoreManager()
-        if (sessionId != null && sessionId.isNotEmpty()) {
+        if (!sessionId.isNullOrEmpty()) {
             this.sessionId = sessionId
         }
         this.sessionTime = sessionTime
         this.allowedOrigin = allowedOrigin
-        if (sessionNamespace != null) {
+        if (!sessionNamespace.isNullOrEmpty()) {
             this.sessionNamespace = sessionNamespace
         }
     }

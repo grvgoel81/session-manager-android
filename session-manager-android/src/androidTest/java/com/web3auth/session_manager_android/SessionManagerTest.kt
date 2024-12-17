@@ -22,7 +22,7 @@ class SessionManagerTest {
     fun test_createSession() {
         val context = InstrumentationRegistry.getInstrumentation().context
         val sessionId = SessionManager.generateRandomSessionKey()
-        sessionManager = SessionManager(context, 86400, context.packageName, sessionId, "*")
+        sessionManager = SessionManager(context, 86400, context.packageName, sessionId)
         val json = JSONObject()
         json.put(
             "privateKey",
@@ -68,7 +68,7 @@ class SessionManagerTest {
     fun test_invalidateSession() {
         val context = InstrumentationRegistry.getInstrumentation().context
         val sessionId = SessionManager.generateRandomSessionKey()
-        sessionManager = SessionManager(context, 86400, context.packageName, sessionId, "sfa")
+        sessionManager = SessionManager(context, 86400, context.packageName, sessionId)
         val json = JSONObject()
         json.put(
             "privateKey",
